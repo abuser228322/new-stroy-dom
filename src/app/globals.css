@@ -1,0 +1,377 @@
+@import "tailwindcss";
+
+/* ============================================
+   Tailwind CSS 4 Theme Configuration
+   Строй Дом - Магазин строительных материалов
+   ============================================ */
+
+@theme {
+  /* Основные цвета бренда */
+  --color-primary: #0EA5E9;
+  --color-primary-dark: #0284C7;
+  --color-primary-light: #38BDF8;
+  
+  /* Акцентные цвета */
+  --color-accent: #F97316;
+  --color-accent-dark: #EA580C;
+  --color-accent-light: #FB923C;
+  
+  /* Успех */
+  --color-success: #22C55E;
+  --color-success-dark: #16A34A;
+  --color-success-light: #4ADE80;
+  
+  /* Ошибки */
+  --color-warning: #EAB308;
+  --color-error: #EF4444;
+  
+  /* Фоны */
+  --color-background: #F8FAFC;
+  --color-foreground: #1E293B;
+  
+  /* Шрифты */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+:root {
+  /* Цветовая схема магазина строительных материалов "Строй Дом" */
+  --background: #F8FAFC;
+  --foreground: #1E293B;
+  
+  /* Основные цвета */
+  --primary: #0EA5E9;
+  --primary-dark: #0284C7;
+  --primary-light: #38BDF8;
+  
+  /* Акцентные цвета */
+  --accent: #F97316;
+  --accent-dark: #EA580C;
+  --accent-light: #FB923C;
+  
+  /* Успех/CTA */
+  --success: #22C55E;
+  --success-dark: #16A34A;
+  --success-light: #4ADE80;
+  
+  /* Предупреждения и ошибки */
+  --warning: #EAB308;
+  --error: #EF4444;
+  
+  /* Нейтральные */
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-500: #64748B;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1E293B;
+  --gray-900: #0F172A;
+  
+  /* Текст */
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+  
+  /* Фоны */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+  
+  /* Границы */
+  --border-light: #E2E8F0;
+  --border-medium: #CBD5E1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Prevent layout shift from fonts and images */
+body {
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Prevent CLS for hero slider - reserve exact space before JS loads */
+main.min-h-screen > div:first-child {
+  height: 400px !important;
+}
+
+@media (max-width: 1299px) {
+  main.min-h-screen > div:first-child {
+    height: clamp(226px, 29.5vw, 400px) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  main.min-h-screen > div:first-child {
+    height: 70vw !important;
+  }
+}
+
+@media (max-width: 600px) {
+  main.min-h-screen > div:first-child {
+    height: 85vw !important;
+  }
+}
+
+/* Prevent CLS for monuments page category grid */
+.grid.grid-cols-2.md\:grid-cols-3 > a > div {
+  min-height: 80px;
+}
+
+@media (min-width: 1024px) {
+  .grid.grid-cols-2.md\:grid-cols-3 > a > div {
+    min-height: 120px;
+  }
+}
+
+/* Prevent CLS for "Другие категории" section on category pages */
+div.mt-17.lg\:mt-30 {
+  min-height: 80px;
+}
+
+@media (min-width: 1024px) {
+  div.mt-17.lg\:mt-30 {
+    min-height: 160px;
+  }
+}
+
+/* Category grid styling */
+/* Using natural content flow instead to prevent layout jank on mobile */
+
+/* Fix footer menu icons causing shift on mobile */
+.lg\:hidden.fixed.bottom-0 {
+  height: 64px;
+}
+
+.lg\:hidden.fixed.bottom-0 img {
+  width: 25px !important;
+  height: 24px !important;
+}
+
+/* Stabilize "Другие категории" images */
+div.mt-17.lg\:mt-30 img {
+  aspect-ratio: 1;
+}
+
+/* Prevent shifts from product grid - using natural content flow */
+/* Removed min-height that was causing layout issues on mobile */
+
+@media (max-width: 499px) {
+  main.min-h-screen > div:first-child {
+    height: 100vw !important;
+  }
+}
+
+@media (max-width: 424px) {
+  main.min-h-screen > div:first-child {
+    height: 112vw !important;
+  }
+}
+
+@media (max-width: 374px) {
+  main.min-h-screen > div:first-child {
+    height: 120vw !important;
+  }
+}
+
+@media (max-width: 319px) {
+  main.min-h-screen > div:first-child {
+    height: 138vw !important;
+  }
+}
+
+/* Image styling - prevent jank on iOS */
+/* Removed: content-visibility: auto causes rendering jank on iOS */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: LatoRegular, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+}
+
+.font-bold, strong {
+  font-family: LatoBold, Arial, sans-serif;
+  font-weight: 700;
+}
+
+@media (min-width: 1380px) {
+  .container-centered {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 1300px) and (max-width: 1379px) {
+  .container-centered {
+    margin-left: 40px; 
+    margin-right: 40px;
+  }
+}
+
+@media (max-width: 1299px) {
+  .container-centered {
+    margin-left: 20px; 
+    margin-right: 20px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .container-centered {
+    margin-left: 16px; 
+    margin-right: 16px;
+  }
+}
+
+@media (min-width: 1380px) {
+  .page-centered {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 1300px) and (max-width: 1379px) {
+  .page-centered {
+    margin-left: 40px; 
+    margin-right: 40px;
+  }
+}
+
+@media (max-width: 1299px) {
+  .page-centered {
+    margin-left: 20px; 
+    margin-right: 20px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .page-centered {
+    margin-left: 0; 
+    margin-right: 0;
+  }
+}
+
+.gradient {
+  background: linear-gradient(180deg,#f5f6fa 0,rgba(245,246,250,0) 100%);
+}
+
+/* Prevent CLS on StoreInfo section (shop slider) - removed aggressive min-height */
+/* Using natural content flow and aspect-ratio for images instead */
+
+/* Fixed ProductCard CLS - using aspect-ratio instead of rigid min-height */
+
+/* Hero slider with natural responsive height, no aggressive min-height on content */
+
+.single-product-media img,
+.single-product-media picture {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.single-product-icons__item {
+  min-height: 36px;
+}
+
+.icon-fixed-28 {
+  width: 28px !important;
+  height: 28px !important;
+  flex-shrink: 0;
+}
+
+.promo-card {
+  min-height: 340px;
+}
+
+.promo-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.promo-card__image {
+  position: relative;
+  width: 100%;
+  padding-top: 62%;
+  overflow: hidden;
+}
+
+.promo-card__image img {
+  object-fit: cover;
+}
+
+.promo-card__content {
+  flex: 1;
+  min-height: 150px;
+}
+
+/* Footer: removed aggressive min-height that caused layout jank on iOS */
+/* Using natural content flow with flexbox instead */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* iOS Safari критичные фиксы */
+/* Убрать треугольники disclosure в details/summary */
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Предотвратить zoom на input focus (iOS) */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Убрать серую подсветку при тапе */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Исправить рендеринг transform на iOS */
+.absolute {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* iOS Safari: fix modal rendering and prevent rubber-band scroll */
+.fixed {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Prevent iOS Safari scroll jank with fixed positioned elements */
+body {
+  -webkit-touch-callout: none;
+}
+
+/* Burger dropdown menu - fixed height that works at any zoom level */
+#burger-dropdown {
+  max-height: calc(100vh - 76px - 61px);
+  min-height: auto;
+}

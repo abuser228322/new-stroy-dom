@@ -1,0 +1,57 @@
+{
+  "name": "new-stroy-dom",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "validate-sitemap": "node scripts/validate-sitemap.js"
+  },
+  "dependencies": {
+    "@types/pg": "^8.15.6",
+    "@types/react-google-recaptcha": "^2.1.9",
+    "axios": "^1.13.2",
+    "cheerio": "^1.1.2",
+    "drizzle-kit": "^0.31.6",
+    "drizzle-orm": "^0.44.7",
+    "next": "^16.0.7",
+    "pg": "^8.16.3",
+    "postgres": "^3.4.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-icons": "^5.5.0",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
+    "critters": "^0.0.23",
+    "eslint": "^9",
+    "eslint-config-next": "^16.0.3",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "xml2js": "^0.6.2"
+  },
+  "browserslist": {
+    "production": [
+      "chrome >= 95",
+      "firefox >= 94",
+      "safari >= 15.4",
+      "edge >= 95"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
