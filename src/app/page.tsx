@@ -53,14 +53,14 @@ export default function Home() {
         <div className="relative container mx-auto px-4 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Текстовый блок */}
-            <div className="text-white">
+            <div className="text-white text-center lg:text-left">
               {/* Бейдж */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-4 sm:mb-6 border border-white/20">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-sm font-medium">Работаем: Пн-Сб 08:00-16:00, Вск 08:00-14:00</span>
+                <span className="text-xs sm:text-sm font-medium">Пн-Сб 08:00-16:00, Вск 08:00-14:00</span>
               </div>
               
-              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
                 Строительные
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
                   материалы
@@ -68,22 +68,22 @@ export default function Home() {
                 в Астрахани
               </h1>
               
-              <p className="text-lg lg:text-xl text-slate-300 mb-8 max-w-xl">
+              <p className="text-base sm:text-lg lg:text-xl text-slate-300 mb-6 sm:mb-8 max-w-xl mx-auto lg:mx-0">
                 Качественные материалы для строительства и ремонта по доступным ценам. 
-                Профнастил, сухие смеси, гипсокартон, утеплители и многое другое.
+                Профнастил, сухие смеси, гипсокартон и утеплители.
               </p>
               
-              <div className="flex flex-wrap gap-4 mb-10">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-8 sm:mb-10 justify-center lg:justify-start">
                 <Link
                   href="/catalog"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-bold rounded-xl hover:from-sky-600 hover:to-cyan-600 transition-all shadow-lg shadow-sky-500/30 hover:shadow-sky-500/50 hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-bold rounded-xl hover:from-sky-600 hover:to-cyan-600 transition-all shadow-lg shadow-sky-500/30 hover:shadow-sky-500/50 hover:-translate-y-0.5 text-sm sm:text-base"
                 >
                   <FaWarehouse className="text-lg" />
                   Перейти в каталог
                 </Link>
                 <a
                   href="tel:+79371333366"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/20 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white font-bold rounded-xl hover:bg-white/20 transition-all text-sm sm:text-base"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -93,18 +93,18 @@ export default function Home() {
               </div>
               
               {/* Мини-статистика */}
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6">
                 <div>
-                  <div className="text-3xl lg:text-4xl font-bold text-white">16+</div>
-                  <div className="text-sm text-slate-400">категорий товаров</div>
+                  <div className="text-xl sm:text-3xl lg:text-4xl font-bold text-white">16+</div>
+                  <div className="text-xs sm:text-sm text-slate-400">категорий</div>
                 </div>
                 <div>
-                  <div className="text-3xl lg:text-4xl font-bold text-white">1000+</div>
-                  <div className="text-sm text-slate-400">наименований</div>
+                  <div className="text-xl sm:text-3xl lg:text-4xl font-bold text-white">1000+</div>
+                  <div className="text-xs sm:text-sm text-slate-400">товаров</div>
                 </div>
                 <div>
-                  <div className="text-3xl lg:text-4xl font-bold text-white">10+</div>
-                  <div className="text-sm text-slate-400">лет на рынке</div>
+                  <div className="text-xl sm:text-3xl lg:text-4xl font-bold text-white">10+</div>
+                  <div className="text-xs sm:text-sm text-slate-400">лет опыта</div>
                 </div>
               </div>
             </div>
@@ -154,46 +154,46 @@ export default function Home() {
       </section>
 
       {/* Преимущества */}
-      <section className="py-6 lg:py-10 bg-white border-b border-gray-100">
+      <section className="py-4 sm:py-6 lg:py-10 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="w-14 h-14 bg-gradient-to-br from-sky-100 to-sky-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <FaCheckCircle className="text-sky-600 text-xl" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-8">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-gray-50 transition-colors text-center sm:text-left">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-sky-100 to-sky-200 rounded-xl flex items-center justify-center shrink-0">
+                <FaCheckCircle className="text-sky-600 text-lg sm:text-xl" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">Качественные товары</p>
-                <p className="text-sm text-gray-500">От проверенных брендов</p>
+                <p className="font-bold text-gray-900 text-xs sm:text-base">Качество</p>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">От проверенных брендов</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <FaRubleSign className="text-emerald-600 text-xl" />
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-gray-50 transition-colors text-center sm:text-left">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center shrink-0">
+                <FaRubleSign className="text-emerald-600 text-lg sm:text-xl" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">Низкие цены</p>
-                <p className="text-sm text-gray-500">Работаем без посредников</p>
+                <p className="font-bold text-gray-900 text-xs sm:text-base">Низкие цены</p>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Без посредников</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <FaTruck className="text-orange-600 text-xl" />
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-gray-50 transition-colors text-center sm:text-left">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center shrink-0">
+                <FaTruck className="text-orange-600 text-lg sm:text-xl" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">Быстрая доставка</p>
-                <p className="text-sm text-gray-500">По Астрахани и области</p>
+                <p className="font-bold text-gray-900 text-xs sm:text-base">Доставка</p>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">По Астрахани</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="w-14 h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                <FaHeadset className="text-violet-600 text-xl" />
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-gray-50 transition-colors text-center sm:text-left">
+              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-100 to-violet-200 rounded-xl flex items-center justify-center shrink-0">
+                <FaHeadset className="text-violet-600 text-lg sm:text-xl" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">Консультации</p>
-                <p className="text-sm text-gray-500">Поможем с выбором</p>
+                <p className="font-bold text-gray-900 text-xs sm:text-base">Консультации</p>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Поможем выбрать</p>
               </div>
             </div>
           </div>

@@ -149,80 +149,83 @@ export default function CartPage() {
               return (
                 <div
                   key={`${item.productId}-${item.size}`}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex gap-5 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-5 hover:shadow-md transition-shadow"
                 >
-                  {/* Изображение */}
-                  <Link
-                    href={productLink}
-                    className="relative w-24 h-24 shrink-0 bg-gray-100 rounded-lg overflow-hidden"
-                  >
-                    <Image
-                      src={item.image || '/images/placeholder.jpg'}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                      sizes="96px"
-                    />
-                  </Link>
-
-                  {/* Информация */}
-                  <div className="grow min-w-0">
+                  <div className="flex gap-3 sm:gap-5">
+                    {/* Изображение */}
                     <Link
                       href={productLink}
-                      className="font-semibold text-gray-900 hover:text-sky-600 transition-colors line-clamp-2"
+                      className="relative w-16 h-16 sm:w-24 sm:h-24 shrink-0 bg-gray-100 rounded-lg overflow-hidden"
                     >
-                      {item.title}
+                      <Image
+                        src={item.image || '/images/placeholder.jpg'}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        sizes="96px"
+                      />
                     </Link>
-                    {item.size && item.size !== 'Стандарт' && (
-                      <p className="text-sm text-gray-500 mt-1">Размер: {item.size}</p>
-                    )}
-                  <p className="text-lg font-bold text-gray-900 mt-2">
-                    {formatPrice(item.price)} ₽
-                  </p>
-                </div>
 
-                {/* Количество */}
-                <div className="flex flex-col items-end justify-between">
-                  <button
-                    onClick={() => removeItem(item.productId, item.size)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                    aria-label="Удалить"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() =>
-                        updateQuantity(item.productId, item.size, item.quantity - 1)
-                      }
-                      className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                      disabled={item.quantity <= 1}
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                      </svg>
-                    </button>
-                    <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        updateQuantity(item.productId, item.size, item.quantity + 1)
-                      }
-                      className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
+                    {/* Информация */}
+                    <div className="grow min-w-0 flex flex-col">
+                      <div className="flex items-start justify-between gap-2">
+                        <Link
+                          href={productLink}
+                          className="font-semibold text-gray-900 hover:text-sky-600 transition-colors text-sm sm:text-base line-clamp-2"
+                        >
+                          {item.title}
+                        </Link>
+                        <button
+                          onClick={() => removeItem(item.productId, item.size)}
+                          className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                          aria-label="Удалить"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      {item.size && item.size !== 'Стандарт' && (
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Размер: {item.size}</p>
+                      )}
+                      <p className="text-base sm:text-lg font-bold text-gray-900 mt-1 sm:mt-2">
+                        {formatPrice(item.price)} ₽
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="text-sm text-gray-500">
-                    {formatPrice(item.price * item.quantity)} ₽
-                  </p>
+                  {/* Количество и сумма - отдельная строка */}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.productId, item.size, item.quantity - 1)
+                        }
+                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                        disabled={item.quantity <= 1}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </button>
+                      <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(item.productId, item.size, item.quantity + 1)
+                        }
+                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <p className="text-sm sm:text-base font-semibold text-gray-900">
+                      {formatPrice(item.price * item.quantity)} ₽
+                    </p>
+                  </div>
                 </div>
-              </div>
               );
             })}
 

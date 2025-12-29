@@ -10,32 +10,32 @@ export default function PaymentPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary to-blue-700 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Доставка и оплата</h1>
-          <p className="text-lg opacity-90">
+      <section className="bg-gradient-to-r from-primary to-blue-700 text-white py-8 sm:py-12 lg:py-16">
+        <div className="container mx-auto px-3 sm:px-4">
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-4">Доставка и оплата</h1>
+          <p className="text-sm sm:text-lg opacity-90">
             Удобные способы оплаты и доставка по всей Астраханской области
           </p>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-12">
         {/* Delivery Section */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-bold mb-8 text-gray-800 flex items-center gap-3">
-            <FaTruck className="text-primary" />
+        <section className="mb-8 sm:mb-16">
+          <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-8 text-gray-800 flex items-center gap-2 sm:gap-3">
+            <FaTruck className="text-primary text-lg sm:text-2xl" />
             Доставка
           </h2>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {/* Self Pickup */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow">
-              <h3 className="text-lg font-semibold mb-3 text-gray-800">Самовывоз</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border hover:shadow-md transition-shadow">
+              <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-gray-800">Самовывоз</h3>
+              <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
                 Заберите заказ самостоятельно с нашего склада по адресу:
               </p>
-              <p className="font-medium text-gray-800">г. Астрахань, ул. Рыбинская 25Н</p>
-              <p className="text-sm text-gray-500 mt-2">Пн-Сб: 08:00-16:00, Вск: 08:00-14:00</p>
+              <p className="font-medium text-gray-800 text-sm sm:text-base">г. Астрахань, ул. Рыбинская 25Н</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">Пн-Сб: 08:00-16:00, Вск: 08:00-14:00</p>
               <div className="mt-4 pt-4 border-t">
                 <span className="inline-block bg-success/10 text-success px-3 py-1 rounded-full text-sm font-medium">
                   Бесплатно

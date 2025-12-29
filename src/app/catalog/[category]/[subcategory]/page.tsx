@@ -85,10 +85,10 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Тёмный заголовок */}
       <section className="bg-gradient-to-r from-slate-900 to-slate-800">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           {/* Хлебные крошки */}
-          <nav className="mb-6">
-            <ol className="flex items-center gap-2 text-sm flex-wrap">
+          <nav className="mb-3 sm:mb-6">
+            <ol className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-wrap">
               <li>
                 <Link href="/" className="text-gray-400 hover:text-white transition-colors">
                   Главная
@@ -111,22 +111,22 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
             </ol>
           </nav>
           
-          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-3">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-3">
             {subcategory.name}
           </h1>
           <p className="text-gray-400 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full text-sm">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
-              {products.length > 0 ? `${products.length} товаров в наличии` : 'Ожидается поступление'}
+            <span className="inline-flex items-center gap-1.5 bg-white/10 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full"></span>
+              {products.length > 0 ? `${products.length} товаров` : 'Ожидается поступление'}
             </span>
           </p>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Боковая панель с фильтрами */}
-          <aside className="w-full lg:w-72 flex-shrink-0">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+          {/* Боковая панель с фильтрами - скрыта на мобильных */}
+          <aside className="hidden lg:block w-72 shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-24">
               <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <svg className="w-5 h-5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -166,9 +166,9 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
           </aside>
 
           {/* Сетка товаров */}
-          <div className="flex-grow">
+          <div className="grow">
             {products.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}

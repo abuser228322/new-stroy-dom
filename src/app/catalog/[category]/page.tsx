@@ -77,8 +77,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Хлебные крошки */}
       <nav className="bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4 py-3">
-          <ol className="flex items-center gap-2 text-sm flex-wrap">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          <ol className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-wrap">
             <li>
               <Link href="/" className="text-gray-500 hover:text-sky-600 transition-colors">
                 Главная
@@ -98,12 +98,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
       {/* Заголовок */}
       <section className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-        <div className="container mx-auto px-4 py-10 lg:py-14">
-          <h1 className="text-3xl lg:text-4xl font-bold mb-3">
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 lg:py-14">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3">
             {category.name}
           </h1>
           {category.subcategories.length > 0 && (
-            <p className="text-slate-300 text-lg">
+            <p className="text-slate-300 text-sm sm:text-lg">
               {category.subcategories.length} подкатегорий товаров
             </p>
           )}
@@ -111,18 +111,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       </section>
 
       {/* Подкатегории или товары */}
-      <section className="container mx-auto px-4 py-10">
+      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
         {category.subcategories.length > 0 ? (
           <>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl lg:text-2xl font-bold text-gray-900">
+            <div className="flex items-center justify-between mb-4 sm:mb-8">
+              <h2 className="text-base sm:text-xl lg:text-2xl font-bold text-gray-900">
                 Выберите подкатегорию
               </h2>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs sm:text-sm text-gray-500">
                 {category.subcategories.length} шт.
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
               {category.subcategories.map((subcategory) => {
                 const iconConfig = subcategoryIcons[subcategory.slug] || defaultIcon;
                 const IconComponent = iconConfig.icon;
@@ -131,18 +131,18 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                   <Link
                     key={subcategory.slug}
                     href={`/catalog/${categorySlug}/${subcategory.slug}`}
-                    className="group flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-sky-200 transition-all hover:-translate-y-0.5"
+                    className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-sky-200 transition-all hover:-translate-y-0.5"
                   >
-                    <div className={`w-14 h-14 ${iconConfig.color} rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
-                      <IconComponent className="text-xl" />
+                    <div className={`w-10 h-10 sm:w-14 sm:h-14 ${iconConfig.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
+                      <IconComponent className="text-base sm:text-xl" />
                     </div>
-                    <div className="flex-grow min-w-0">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-sky-600 transition-colors">
+                    <div className="grow min-w-0">
+                      <h3 className="font-semibold text-gray-900 group-hover:text-sky-600 transition-colors text-sm sm:text-base">
                         {subcategory.name}
                       </h3>
-                      <p className="text-sm text-gray-500">Смотреть товары →</p>
+                      <p className="text-xs sm:text-sm text-gray-500">Смотреть товары →</p>
                     </div>
-                    <FaChevronRight className="w-4 h-4 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all flex-shrink-0" />
+                    <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all shrink-0" />
                   </Link>
                 );
               })}

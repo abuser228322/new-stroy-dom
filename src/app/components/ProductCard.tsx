@@ -102,15 +102,15 @@ export default function ProductCard({
       </Link>
 
       {/* Контент */}
-      <div className="flex flex-col grow p-4">
+      <div className="flex flex-col grow p-2 sm:p-4">
         {/* Бренд */}
         {product.brand && (
-          <span className="text-xs text-sky-600 font-medium mb-1">{product.brand}</span>
+          <span className="text-[10px] sm:text-xs text-sky-600 font-medium mb-1">{product.brand}</span>
         )}
 
         {/* Название */}
         <Link href={productUrl} className="group/title">
-          <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover/title:text-sky-600 transition-colors mb-2">
+          <h3 className="font-semibold text-gray-900 text-xs sm:text-sm md:text-base line-clamp-2 group-hover/title:text-sky-600 transition-colors mb-2">
             {product.title}
           </h3>
         </Link>
@@ -137,13 +137,13 @@ export default function ProductCard({
         )}
 
         {/* Цена */}
-        <div className="mt-auto mb-3">
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-gray-900">
+        <div className="mt-auto mb-2 sm:mb-3">
+          <div className="flex items-baseline gap-1 sm:gap-2">
+            <span className="text-base sm:text-xl font-bold text-gray-900">
               {formatPrice(currentSize.price)} ₽
             </span>
             {product.unit && !hasMultipleSizes && (
-              <span className="text-sm text-gray-500">/ {product.unit}</span>
+              <span className="text-[10px] sm:text-sm text-gray-500">/ {product.unit}</span>
             )}
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function ProductCard({
         <button
           onClick={handleAddToCart}
           disabled={product.inStock === false || isAdding}
-          className={`w-full py-2.5 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
+          className={`w-full py-2 sm:py-2.5 px-2 sm:px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm ${
             product.inStock === false
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : showSuccess

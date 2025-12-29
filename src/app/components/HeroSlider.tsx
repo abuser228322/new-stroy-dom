@@ -101,49 +101,55 @@ const HeroSlider = () => {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
-        <div className="relative h-[280px] md:h-[320px]">
+      {/* Контейнер с отступами для кнопок */}
+      <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-10">
+        {/* На мобильных mx-0, на десктопе mx-5 для кнопок */}
+        <div className="relative h-[200px] md:h-[320px] md:mx-5">
           {/* Слайдер с закруглениями */}
-          <div className="absolute inset-0 rounded-2xl overflow-hidden">
-          {/* Слайды */}
-          {slides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-all duration-500 ease-in-out bg-gradient-to-r ${slide.bgColor} ${
-                index === currentSlide
-                  ? "opacity-100 translate-x-0"
-                  : index < currentSlide
-                  ? "opacity-0 -translate-x-full"
-                  : "opacity-0 translate-x-full"
-              }`}
-            >
-              <div className="h-full flex items-center px-6 md:px-12">
-                <div className="max-w-xl text-white">
-                  <div className="text-4xl md:text-6xl mb-4">{slide.icon}</div>
-                  <h2 className="text-2xl md:text-4xl font-bold mb-3">
-                    {slide.title}
-                  </h2>
-                  <p className="text-base md:text-lg text-white/90 mb-6">
-                    {slide.subtitle}
-                  </p>
-                  <Link
-                    href={slide.button.href}
-                    className="inline-block bg-white text-gray-800 font-semibold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
-                  >
-                    {slide.button.text}
-                  </Link>
+          <div className="absolute inset-0 rounded-xl md:rounded-2xl overflow-hidden">
+            {/* Слайды */}
+            {slides.map((slide, index) => (
+              <div
+                key={slide.id}
+                className={`absolute inset-0 transition-all duration-500 ease-in-out bg-gradient-to-r ${slide.bgColor} ${
+                  index === currentSlide
+                    ? "opacity-100 translate-x-0"
+                    : index < currentSlide
+                    ? "opacity-0 -translate-x-full"
+                    : "opacity-0 translate-x-full"
+                }`}
+              >
+                <div className="h-full flex items-center px-4 md:px-12">
+                  <div className="max-w-xl text-white">
+                    {/* Иконка - меньше на мобильных */}
+                    <div className="text-2xl md:text-5xl mb-2 md:mb-4">{slide.icon}</div>
+                    {/* Заголовок - компактнее на мобильных */}
+                    <h2 className="text-lg md:text-4xl font-bold mb-1 md:mb-3">
+                      {slide.title}
+                    </h2>
+                    {/* Подзаголовок - скрыт на очень маленьких экранах, обрезан на мобильных */}
+                    <p className="text-xs md:text-lg text-white/90 mb-3 md:mb-6 line-clamp-1 md:line-clamp-2">
+                      {slide.subtitle}
+                    </p>
+                    {/* Кнопка - компактнее на мобильных */}
+                    <Link
+                      href={slide.button.href}
+                      className="inline-block bg-white text-gray-800 font-semibold px-4 md:px-6 py-2 md:py-3 text-sm md:text-base rounded-lg md:rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
+                    >
+                      {slide.button.text}
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Декоративные элементы - только на десктопе */}
+                <div className="absolute right-0 top-0 bottom-0 w-1/3 hidden lg:flex items-center justify-center opacity-20">
+                  <div className="text-[200px]">{slide.icon}</div>
                 </div>
               </div>
+            ))}
 
-              {/* Декоративные элементы */}
-              <div className="absolute right-0 top-0 bottom-0 w-1/3 hidden md:flex items-center justify-center opacity-20">
-                <div className="text-[200px]">{slide.icon}</div>
-              </div>
-            </div>
-          ))}
-
-            {/* Индикаторы */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+            {/* Индикаторы - выше на мобильных чтобы не перекрывались кнопкой */}
+            <div className="absolute bottom-1 md:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
               {slides.map((_, index) => (
                 <button
                   key={index}
@@ -159,10 +165,10 @@ const HeroSlider = () => {
             </div>
           </div>
 
-          {/* Стрелки навигации - по краям, наполовину внутри/снаружи */}
+          {/* Стрелки навигации - ТОЛЬКО на десктопе (md+), на мобильных свайп */}
           <button
             onClick={prevSlide}
-            className="absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-lg hover:bg-gray-50 rounded-full flex items-center justify-center text-gray-700 transition-all hover:scale-110 z-20"
+            className="hidden md:flex absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-lg hover:bg-gray-50 rounded-full items-center justify-center text-gray-700 transition-all hover:scale-110 z-20"
             aria-label="Предыдущий слайд"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,7 +177,7 @@ const HeroSlider = () => {
           </button>
           <button
             onClick={nextSlide}
-            className="absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-lg hover:bg-gray-50 rounded-full flex items-center justify-center text-gray-700 transition-all hover:scale-110 z-20"
+            className="hidden md:flex absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-lg hover:bg-gray-50 rounded-full items-center justify-center text-gray-700 transition-all hover:scale-110 z-20"
             aria-label="Следующий слайд"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

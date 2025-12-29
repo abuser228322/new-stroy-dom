@@ -88,30 +88,30 @@ export default async function CatalogPage() {
 
       {/* Заголовок */}
       <section className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-        <div className="container mx-auto px-4 py-12 lg:py-16">
-          <h1 className="text-3xl lg:text-5xl font-bold mb-4">
+        <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
+          <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-2 sm:mb-4">
             Каталог товаров
           </h1>
-          <p className="text-slate-300 max-w-2xl text-lg">
+          <p className="text-slate-300 max-w-2xl text-sm sm:text-base lg:text-lg">
             Строительные и отделочные материалы для любых задач. Выберите категорию для
             просмотра товаров.
           </p>
-          <div className="flex gap-6 mt-8">
+          <div className="flex gap-4 sm:gap-6 mt-6 sm:mt-8">
             <div className="text-center">
-              <div className="text-3xl font-bold">{categories.length}</div>
-              <div className="text-sm text-slate-400">категорий</div>
+              <div className="text-xl sm:text-3xl font-bold">{categories.length}</div>
+              <div className="text-xs sm:text-sm text-slate-400">категорий</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold">1000+</div>
-              <div className="text-sm text-slate-400">товаров</div>
+              <div className="text-xl sm:text-3xl font-bold">1000+</div>
+              <div className="text-xs sm:text-sm text-slate-400">товаров</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Сетка категорий */}
-      <section className="container mx-auto px-4 py-10 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10 lg:py-16">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {categories.map((category) => {
             const style = categoryStyles[category.slug] || defaultStyle;
             const IconComponent = style.icon;
@@ -120,38 +120,38 @@ export default async function CatalogPage() {
               <Link
                 key={category.slug}
                 href={`/catalog/${category.slug}`}
-                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-sky-200 hover:-translate-y-1"
+                className="group bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-sky-200 hover:-translate-y-1"
               >
                 {/* Иконка категории */}
-                <div className={`relative h-44 ${style.bgColor} flex items-center justify-center overflow-hidden`}>
+                <div className={`relative h-28 sm:h-36 lg:h-44 ${style.bgColor} flex items-center justify-center overflow-hidden`}>
                   {/* Декоративные элементы */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/30 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full translate-y-1/2 -translate-x-1/2" />
+                  <div className="absolute top-0 right-0 w-16 sm:w-24 lg:w-32 h-16 sm:h-24 lg:h-32 bg-white/30 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute bottom-0 left-0 w-12 sm:w-16 lg:w-24 h-12 sm:h-16 lg:h-24 bg-white/20 rounded-full translate-y-1/2 -translate-x-1/2" />
                   
-                  <div className={`relative w-20 h-20 bg-gradient-to-br ${style.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="text-white text-3xl" />
+                  <div className={`relative w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br ${style.gradient} rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="text-white text-lg sm:text-2xl lg:text-3xl" />
                   </div>
                   
                   {/* Количество подкатегорий */}
                   {category.subcategories.length > 0 && (
-                    <div className="absolute top-4 right-4 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
-                      {category.subcategories.length} подкатег.
+                    <div className="absolute top-2 right-2 sm:top-4 sm:right-4 px-2 py-1 sm:px-3 sm:py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-[10px] sm:text-xs font-medium text-gray-700 shadow-sm">
+                      {category.subcategories.length} подкат.
                     </div>
                   )}
                 </div>
 
                 {/* Название и описание */}
-                <div className="p-5">
-                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-sky-600 transition-colors mb-3">
+                <div className="p-3 sm:p-4 lg:p-5">
+                  <h2 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 group-hover:text-sky-600 transition-colors mb-2 sm:mb-3 line-clamp-1">
                     {category.name}
                   </h2>
                   
                   {/* Список подкатегорий */}
                   {category.subcategories.length > 0 && (
-                    <ul className="text-sm text-gray-500 space-y-1.5">
+                    <ul className="hidden sm:block text-xs sm:text-sm text-gray-500 space-y-1 sm:space-y-1.5">
                       {category.subcategories.slice(0, 3).map((sub) => (
                         <li key={sub.slug} className="truncate flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 bg-sky-400 rounded-full flex-shrink-0" />
+                          <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-sky-400 rounded-full shrink-0" />
                           {sub.name}
                         </li>
                       ))}
@@ -165,8 +165,8 @@ export default async function CatalogPage() {
                 </div>
 
                 {/* Кнопка */}
-                <div className="px-5 pb-5">
-                  <span className="flex items-center justify-center gap-2 w-full py-3 bg-gray-100 group-hover:bg-gradient-to-r group-hover:from-sky-500 group-hover:to-cyan-500 text-gray-700 group-hover:text-white font-semibold rounded-xl transition-all">
+                <div className="px-3 pb-3 sm:px-5 sm:pb-5">
+                  <span className="flex items-center justify-center gap-1 sm:gap-2 w-full py-2 sm:py-3 bg-gray-100 group-hover:bg-gradient-to-r group-hover:from-sky-500 group-hover:to-cyan-500 text-gray-700 group-hover:text-white text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl transition-all">
                     Смотреть товары
                     <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

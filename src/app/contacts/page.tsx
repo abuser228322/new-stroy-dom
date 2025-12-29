@@ -17,7 +17,7 @@ export default function ContactsPage() {
       </section>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Contact Info */}
           <div>
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Наши контакты</h2>

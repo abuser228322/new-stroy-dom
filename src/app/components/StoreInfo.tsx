@@ -225,31 +225,35 @@ export default function StoreInfo({ className = '' }: StoreInfoProps) {
               <FaClock className="text-slate-500" />
               <h4 className="font-semibold text-gray-900">График работы</h4>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-gray-600">Понедельник - Суббота:</span>
-              <span className="font-medium text-gray-900">08:00-16:00</span>
-              <span className="text-gray-600">Воскресенье:</span>
-              <span className="font-medium text-gray-900">08:00-14:00</span>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Пн-Сб:</span>
+                <span className="font-medium text-gray-900">08:00-16:00</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Вск:</span>
+                <span className="font-medium text-gray-900">08:00-14:00</span>
+              </div>
             </div>
           </div>
 
           {/* Кнопки действий */}
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 grid grid-cols-2 gap-3">
             <a
               href={`tel:${CONTACT_INFO.phoneClean}`}
-              className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-sky-600 hover:to-cyan-600 transition-all shadow-lg shadow-sky-500/30"
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-sky-600 hover:to-cyan-600 transition-all shadow-lg shadow-sky-500/30 text-sm sm:text-base"
             >
-              <FaPhone />
-              Позвонить
+              <FaPhone className="shrink-0" />
+              <span>Позвонить</span>
             </a>
             <a
               href="https://yandex.ru/maps/-/CHe38Zwa"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 min-w-[140px] inline-flex items-center justify-center gap-2 px-6 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-sky-300 hover:text-sky-600 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-sky-300 hover:text-sky-600 transition-colors text-sm sm:text-base"
             >
-              <FaDirections />
-              Построить маршрут
+              <FaDirections className="shrink-0" />
+              <span>Маршрут</span>
             </a>
           </div>
         </div>

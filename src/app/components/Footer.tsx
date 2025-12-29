@@ -99,7 +99,7 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t border-gray-200">
       {/* Мобильное аккордеон-меню */}
-      <div className="lg:hidden">
+      <div className="md:hidden">
         <AccordionSection
           title="Каталог"
           sectionKey="catalog"
@@ -123,12 +123,12 @@ export default function Footer() {
         />
       </div>
 
-      {/* Десктопная версия */}
-      <div className="hidden lg:block bg-gradient-to-r from-slate-900 to-slate-800">
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-12 gap-8">
+      {/* Десктопная и планшетная версия */}
+      <div className="hidden md:block bg-gradient-to-r from-slate-900 to-slate-800">
+        <div className="container mx-auto px-4 py-10 lg:py-12">
+          <div className="grid grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8">
             {/* Логотип и контакты */}
-            <div className="col-span-3">
+            <div className="col-span-1 lg:col-span-3">
               <Link href="/" className="flex items-center gap-3 mb-6 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/30 group-hover:shadow-sky-500/50 transition-shadow">
                   <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,7 +188,7 @@ export default function Footer() {
             </div>
 
             {/* Каталог */}
-            <div className="col-span-3">
+            <div className="col-span-1 lg:col-span-3">
               <h3 className="text-lg font-bold text-white mb-4">Каталог</h3>
               <ul className="space-y-2.5">
                 {catalogLinks.map((item) => (
@@ -213,7 +213,7 @@ export default function Footer() {
             </div>
 
             {/* Информация */}
-            <div className="col-span-2">
+            <div className="col-span-1 lg:col-span-2 hidden lg:block">
               <h3 className="text-lg font-bold text-white mb-4">Информация</h3>
               <ul className="space-y-2.5">
                 {FOOTER_LINKS.info.map((item) => (
@@ -230,7 +230,7 @@ export default function Footer() {
             </div>
 
             {/* Документы */}
-            <div className="col-span-2">
+            <div className="col-span-1 lg:col-span-2 hidden lg:block">
               <h3 className="text-lg font-bold text-white mb-4">Документы</h3>
               <ul className="space-y-2.5">
                 {FOOTER_LINKS.legal.map((item) => (
@@ -247,7 +247,7 @@ export default function Footer() {
             </div>
 
             {/* Мы в соцсетях */}
-            <div className="col-span-2">
+            <div className="col-span-1 lg:col-span-2 hidden lg:block">
               <h3 className="text-lg font-bold text-white mb-4">Мы в соцсетях</h3>
               <div className="flex gap-3">
                 <a

@@ -60,14 +60,14 @@ export default function PopularCategories() {
   }
 
   return (
-    <section className="py-10 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8 lg:mb-10">
+    <section className="py-6 sm:py-10 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex items-center justify-between mb-4 sm:mb-8 lg:mb-10">
           <div>
-            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900">
               Популярные категории
             </h2>
-            <p className="text-gray-500 mt-1">Выберите нужный раздел каталога</p>
+            <p className="text-gray-500 mt-1 text-sm sm:text-base hidden sm:block">Выберите нужный раздел каталога</p>
           </div>
           <Link
             href="/catalog"
@@ -90,7 +90,7 @@ export default function PopularCategories() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {popularCategories.map((category) => {
             const iconConfig = categoryIcons[category.slug] || { icon: FaCube, gradient: "from-gray-400 to-gray-600" };
             const IconComponent = iconConfig.icon;
@@ -99,21 +99,21 @@ export default function PopularCategories() {
               <Link
                 key={category.slug}
                 href={`/catalog/${category.slug}`}
-                className="group bg-white hover:shadow-xl rounded-2xl p-5 lg:p-6 transition-all duration-300 border border-gray-100 hover:border-sky-200 hover:-translate-y-1"
+                className="group bg-white hover:shadow-xl rounded-xl sm:rounded-2xl p-3 sm:p-5 lg:p-6 transition-all duration-300 border border-gray-100 hover:border-sky-200 hover:-translate-y-1"
               >
                 <div className="flex flex-col items-center text-center">
                   {/* Иконка категории */}
-                  <div className={`w-16 h-16 lg:w-20 lg:h-20 mb-4 flex items-center justify-center bg-gradient-to-br ${iconConfig.gradient} rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="text-white text-2xl lg:text-3xl" />
+                  <div className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 mb-2 sm:mb-4 flex items-center justify-center bg-gradient-to-br ${iconConfig.gradient} rounded-xl sm:rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="text-white text-lg sm:text-2xl lg:text-3xl" />
                   </div>
 
                   {/* Название категории */}
-                  <h3 className="text-sm lg:text-base font-semibold text-gray-900 group-hover:text-sky-600 transition-colors line-clamp-2 mb-2">
+                  <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-900 group-hover:text-sky-600 transition-colors line-clamp-2 mb-1 sm:mb-2">
                     {category.name}
                   </h3>
 
                   {/* Количество подкатегорий */}
-                  <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                     <span className="w-1.5 h-1.5 bg-sky-400 rounded-full" />
                     {category.subcategories.length} подкатегор
                     {category.subcategories.length === 1

@@ -7,7 +7,6 @@ import { useCategories, type Category } from '@/hooks/useCategories';
 
 // Статус работы магазина
 function StoreStatus() {
-  const [statusText, setStatusText] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -19,23 +18,18 @@ function StoreStatus() {
     
     // Новый график: Пн-Сб: 08:00-16:00, Вск: 08:00-14:00
     const isSunday = day === 0;
-    const isWeekdayOrSaturday = day >= 1 && day <= 6;
     
     if (isSunday) {
-      const open = currentTime >= 8 && currentTime < 14;
-      setIsOpen(open);
-      setStatusText(open ? 'Открыто до 14:00' : 'Вск: 08:00-14:00');
-    } else if (isWeekdayOrSaturday) {
-      const open = currentTime >= 8 && currentTime < 16;
-      setIsOpen(open);
-      setStatusText(open ? 'Открыто до 16:00' : 'Пн-Сб: 08:00-16:00');
+      setIsOpen(currentTime >= 8 && currentTime < 14);
+    } else {
+      setIsOpen(currentTime >= 8 && currentTime < 16);
     }
   }, []);
   
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}></span>
-      <span className="text-gray-600">{statusText}</span>
+      <span className="text-gray-600">Пн-Сб 08:00-16:00, Вск 08:00-14:00</span>
     </div>
   );
 }
@@ -313,7 +307,7 @@ export default function Header() {
                 Политика конфиденциальности
               </Link>
               <div className="pt-2 px-4">
-                <StoreStatus />
+                <p className="text-sm text-gray-600">Пн-Сб 08:00-16:00, Вск 08:00-14:00</p>
               </div>
               <a
                 href="tel:+79371333366"
