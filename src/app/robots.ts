@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://k-r.by';
+  const baseUrl = 'https://stroydom30.ru';
   
   return {
     rules: [
@@ -15,18 +15,19 @@ export default function robots(): MetadataRoute.Robots {
           '/favorites/',
           '/_next/',
           '/static/',
+          '/cart',
         ],
       },
       // Специальные правила для поисковых ботов
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/login/', '/favorites/'],
+        disallow: ['/api/', '/admin/', '/login/', '/favorites/', '/cart'],
       },
       {
         userAgent: 'Yandex',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/login/', '/favorites/'],
+        disallow: ['/api/', '/admin/', '/login/', '/favorites/', '/cart'],
         crawlDelay: 1,
       },
     ],

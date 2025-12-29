@@ -196,7 +196,7 @@ export default function Header() {
                         )}
                         <Link
                           href={activeCategoryData.href}
-                          className="inline-block mt-4 text-sm text-sky-600 hover:text-sky-700 font-medium"
+                          className="inline-block ml-3 mt-4 text-sm text-sky-600 hover:text-sky-700 font-medium"
                         >
                           Смотреть все →
                         </Link>

@@ -21,11 +21,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'k-r.by',
-      },
-      {
-        protocol: 'https',
-        hostname: 'api.k-r.by',
+        hostname: 'stroydom30.ru',
       },
       {
         protocol: 'http',
