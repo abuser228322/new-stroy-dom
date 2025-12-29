@@ -105,9 +105,9 @@ export async function PUT(
     if (body.minOrderAmount !== undefined) updateData.minOrderAmount = body.minOrderAmount;
     if (body.maxDiscountAmount !== undefined) updateData.maxDiscountAmount = body.maxDiscountAmount;
     if (body.usageLimit !== undefined) updateData.usageLimit = body.usageLimit;
-    if (body.userUsageLimit !== undefined) updateData.userUsageLimit = body.userUsageLimit;
-    if (body.validFrom !== undefined) updateData.validFrom = body.validFrom ? new Date(body.validFrom) : null;
-    if (body.validUntil !== undefined) updateData.validUntil = body.validUntil ? new Date(body.validUntil) : null;
+    if (body.usagePerUser !== undefined) updateData.usagePerUser = body.usagePerUser;
+    if (body.startDate !== undefined) updateData.startDate = body.startDate ? new Date(body.startDate) : null;
+    if (body.endDate !== undefined) updateData.endDate = body.endDate ? new Date(body.endDate) : null;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
     
     updateData.updatedAt = new Date();
