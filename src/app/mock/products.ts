@@ -3585,7 +3585,7 @@ export const subcategoryToSlug: Record<string, string> = {
   'С-20': 's-20',
   'С-21': 's-21',
   'НС-35': 'ns-35',
-  // Сухие смеси (ВАЖНО: slug должен соответствовать menuCategories.ts)
+  // Сухие смеси
   'Штукатурка': 'shtukaturka',
   'Шпатлёвка': 'shpatlevka',
   'Декоративная штукатурка': 'dekorativnaya-shtukaturka',
@@ -3597,7 +3597,6 @@ export const subcategoryToSlug: Record<string, string> = {
   'Цемент': 'cement',
   'Затирка для плитки': 'zatirka-dlya-plitki',
   // Древесные плиты
-  'ОСП (OSB)': 'osp',
   'ОСП': 'osp',
   'ДСП': 'dsp',
   'ДВП': 'dvp',
@@ -3608,15 +3607,9 @@ export const subcategoryToSlug: Record<string, string> = {
   // Гипсокартон
   'Для сухих помещений': 'dlya-suhih-pomescheniy',
   'Влагостойкий': 'vlagostoykiy',
-  'ГКЛ': 'dlya-suhih-pomescheniy',
-  'ГКЛВ': 'vlagostoykiy',
-  'ГКЛО': 'gklo',
-  'ГВЛ': 'gvl',
   // Профиля и направляющие
   'Стеновые': 'stenovye',
   'Перегородочные': 'peregorodochnye',
-  'Профиля': 'stenovye',
-  'Направляющие': 'peregorodochnye',
   // Маяки и перфорированные углы
   'Маяки': 'mayaki',
   'Перфорированные углы': 'perforirovannye-ugly',
@@ -3625,46 +3618,33 @@ export const subcategoryToSlug: Record<string, string> = {
   'Металлические углы': 'metallicheskie-ugly',
   // Арматура
   'Стеклопластиковая арматура': 'stekloplastikovaya-armatura',
-  'Арматура': 'stekloplastikovaya-armatura',
   'Кладочная сетка': 'kladochnaya-setka',
   // Утеплители
   'Пенополистирол': 'penopolistirol',
   'Пенопласт': 'penoplast',
   'Каменная и минеральная вата': 'kamennaya-i-mineralnaya-vata',
-  'Минеральная вата': 'kamennaya-i-mineralnaya-vata',
-  'Экструдированный пенополистирол': 'penopolistirol',
   // Изоляция
   'Отражающая теплоизоляция': 'otrazhayuschaya-teploizolyaciya',
   'Пароизоляция': 'paroizolyaciya',
   'Гидро-пароизоляция': 'gidro-paroizolyaciya',
   'Ветро-влагозащита': 'vetro-vlagozaschita',
-  'Ветрозащита': 'vetro-vlagozaschita',
   // Гидроизоляция
   'Сухая смесь': 'suhaya-smes',
   'Жидкая гидроизоляция': 'zhidkaya-gidroizolyaciya',
   'Лента гидроизоляционная': 'lenta-gidroizolyacionnaya',
   'Битумные рулоны': 'bitumnye-rulony',
-  'Рулонная гидроизоляция': 'bitumnye-rulony',
-  'Битумная мастика': 'zhidkaya-gidroizolyaciya',
   // Лакокрасочные материалы
   'Водоэмульсионные краски': 'vodoemulsionnye-kraski',
-  'Краска': 'vodoemulsionnye-kraski',
   'Эмали': 'emali',
-  'Эмаль': 'emali',
   'Лаки и пропитки': 'laki-i-propitki',
-  'Лак': 'laki-i-propitki',
-  'Грунтовка': 'gruntovka',
   // Отделка
-  'Грунт': 'gruntovka',
+  'Грунтовка': 'gruntovka',
   'Бетоноконтакт': 'betonokontakt',
   'Готовые шпатлёвки': 'gotovye-shpatlevki',
-  'Шпатлёвки готовые': 'gotovye-shpatlevki',
   'Монтажная пена и пена клей': 'montazhnaya-pena-i-pena-kley',
-  'Монтажная пена': 'montazhnaya-pena-i-pena-kley',
   'Герметик': 'germetik',
   'Клей': 'kley',
   'Стеклосетка и стеклохолст': 'steklosetka-i-stekloholst',
-  'Стеклообои и стеклохолст': 'steklosetka-i-stekloholst',
   'Ленты и скотчи': 'lenty-i-skotchi',
   // Крепёж
   'Саморезы для гипсокартона': 'samorezy-dlya-gipsokartona',
