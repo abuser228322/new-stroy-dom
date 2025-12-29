@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import { useCategories, type Category } from '@/hooks/useCategories';
+import UserMenu from './UserMenu';
 
 // Статус работы магазина
 function StoreStatus() {
@@ -250,6 +251,9 @@ export default function Header() {
                 </span>
               )}
             </Link>
+
+            {/* Профиль / Вход */}
+            <UserMenu />
 
             {/* Кнопка мобильного меню */}
             <button

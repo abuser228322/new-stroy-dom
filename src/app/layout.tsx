@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Viewport } from "next";
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
@@ -72,11 +73,13 @@ export default function RootLayout({
         {/* Favicon ссылки управляются через metadata API */}
       </head>
       <body className="min-w-[360px] bg-[var(--bg-secondary)] text-[var(--text-primary)]">
-        <CartProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,5 +1,95 @@
-import { pgTable, serial, text, numeric, varchar, timestamp, boolean, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, varchar, timestamp, boolean, integer, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+// ==================== ENUMS ====================
+
+export const userRoleEnum = pgEnum("user_role", ["SUPERADMIN", "ADMIN", "MODER", "USER"]);
+
+// ==================== ПОЛЬЗОВАТЕЛИ ====================
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  
+  // Основные данные
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  passwordHash: text("password_hash"), // null если регистрация через Telegram
+  
+  // Telegram
+  telegramId: varchar("telegram_id", { length: 50 }).unique(),
+  telegramUsername: varchar("telegram_username", { length: 100 }),
+  
+  // Контактные данные
+  email: varchar("email", { length: 255 }).unique(),
+  emailVerified: boolean("email_verified").default(false),
+  phone: varchar("phone", { length: 20 }),
+  phoneVerified: boolean("phone_verified").default(false),
+  
+  // Профиль
+  firstName: varchar("first_name", { length: 100 }),
+  lastName: varchar("last_name", { length: 100 }),
+  avatar: text("avatar"),
+  
+  // Роль и статус
+  role: userRoleEnum("role").default("USER").notNull(),
+  isActive: boolean("is_active").default(true),
+  
+  // Даты
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ==================== СЕССИИ ====================
+
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  userAgent: text("user_agent"),
+  ip: varchar("ip", { length: 45 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ==================== КУПОНЫ ====================
+
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  
+  // Тип скидки
+  discountType: varchar("discount_type", { length: 20 }).notNull(), // "percent" | "fixed"
+  discountValue: numeric("discount_value", { precision: 10, scale: 2 }).notNull(),
+  
+  // Ограничения
+  minOrderAmount: numeric("min_order_amount", { precision: 10, scale: 2 }),
+  maxDiscountAmount: numeric("max_discount_amount", { precision: 10, scale: 2 }),
+  usageLimit: integer("usage_limit"), // Общее количество использований
+  usagePerUser: integer("usage_per_user").default(1), // Использований на пользователя
+  usageCount: integer("usage_count").default(0),
+  
+  // Даты действия
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  
+  // Статус
+  isActive: boolean("is_active").default(true),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ==================== ИСПОЛЬЗОВАНИЕ КУПОНОВ ====================
+
+export const couponUsages = pgTable("coupon_usages", {
+  id: serial("id").primaryKey(),
+  couponId: integer("coupon_id").notNull().references(() => coupons.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  orderAmount: numeric("order_amount", { precision: 10, scale: 2 }),
+  discountAmount: numeric("discount_amount", { precision: 10, scale: 2 }),
+  usedAt: timestamp("used_at").defaultNow().notNull(),
+});
 
 // ==================== КАТЕГОРИИ ====================
 
@@ -101,3 +191,49 @@ export type NewSubcategory = typeof subcategories.$inferInsert;
 
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+
+export type Coupon = typeof coupons.$inferSelect;
+export type NewCoupon = typeof coupons.$inferInsert;
+
+export type CouponUsage = typeof couponUsages.$inferSelect;
+export type NewCouponUsage = typeof couponUsages.$inferInsert;
+
+// ==================== USER RELATIONS ====================
+
+export const usersRelations = relations(users, ({ many }) => ({
+  sessions: many(sessions),
+  couponUsages: many(couponUsages),
+  createdCoupons: many(coupons),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const couponsRelations = relations(coupons, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [coupons.createdById],
+    references: [users.id],
+  }),
+  usages: many(couponUsages),
+}));
+
+export const couponUsagesRelations = relations(couponUsages, ({ one }) => ({
+  coupon: one(coupons, {
+    fields: [couponUsages.couponId],
+    references: [coupons.id],
+  }),
+  user: one(users, {
+    fields: [couponUsages.userId],
+    references: [users.id],
+  }),
+}));
