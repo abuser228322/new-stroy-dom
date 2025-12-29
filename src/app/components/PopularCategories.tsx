@@ -12,7 +12,7 @@ import {
   FaTh,
   FaTools 
 } from "react-icons/fa";
-import { menuCategories } from "../mock/menuCategories";
+import { useCategories } from "@/hooks/useCategories";
 
 // Маппинг иконок для категорий
 const categoryIcons: Record<string, { icon: React.ElementType; gradient: string }> = {
@@ -39,9 +39,25 @@ const popularCategorySlugs = [
 ];
 
 export default function PopularCategories() {
-  const popularCategories = menuCategories.filter((cat) =>
-    popularCategorySlugs.includes(cat.slug)
-  );
+  const { categories, loading } = useCategories();
+  
+  // Выбираем популярные категории (первые 8 или по slugs)
+  const popularCategories = categories
+    .filter((cat) => popularCategorySlugs.includes(cat.slug))
+    .slice(0, 8);
+
+  // Показываем загрузку
+  if (loading && categories.length === 0) {
+    return (
+      <section className="py-10 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-10 lg:py-16 bg-gradient-to-b from-gray-50 to-white">
@@ -82,7 +98,7 @@ export default function PopularCategories() {
             return (
               <Link
                 key={category.slug}
-                href={category.href}
+                href={`/catalog/${category.slug}`}
                 className="group bg-white hover:shadow-xl rounded-2xl p-5 lg:p-6 transition-all duration-300 border border-gray-100 hover:border-sky-200 hover:-translate-y-1"
               >
                 <div className="flex flex-col items-center text-center">

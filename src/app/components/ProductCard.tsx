@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import type { Product, CartItem } from '../types/types';
-import { categoryToSlug, subcategoryToSlug } from '../mock/products';
 
 interface ProductCardProps {
   product: Product;
@@ -26,8 +25,8 @@ export default function ProductCard({
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Определяем слаги из товара если не переданы
-  const catSlug = categorySlug || categoryToSlug[product.mainCategory] || '';
-  const subSlug = subcategorySlug || subcategoryToSlug[product.subCategory] || '';
+  const catSlug = categorySlug || product.categorySlug || '';
+  const subSlug = subcategorySlug || product.subcategorySlug || '';
 
   // Получаем размеры и цены из Record<string, number> или одиночной цены
   const sizes = useMemo(() => {

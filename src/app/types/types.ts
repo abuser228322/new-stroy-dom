@@ -31,11 +31,13 @@ export interface Subcategory {
 export interface Product {
   id: string;                      // UUID идентификатор
   title: string;                   // "МП-20 Коричневый (1150х0.35мм)"
-  description: string;             // Описание товара
-  image: string;                   // Путь к изображению
+  description?: string | null;     // Описание товара
+  image?: string | null;           // Путь к изображению
   mainCategory: string;            // "Профнастил"
   subCategory: string;             // "МП-20"
   urlId: string;                   // URL-идентификатор: "mp-20-korichnevyy"
+  categorySlug?: string;           // Slug категории для URL
+  subcategorySlug?: string;        // Slug подкатегории для URL
   
   // Цены (один из вариантов)
   price?: number;                  // Фиксированная цена
@@ -45,8 +47,8 @@ export interface Product {
   // Дополнительно
   unit?: string;                   // "шт", "м", "кг"
   brand?: string;                  // "Knauf", "Ceresit"
-  inStock?: boolean;               // В наличии
-  isWeight?: boolean;              // Для весовых товаров (краска, эмаль и т.д.)
+  inStock?: boolean | null;        // В наличии
+  isWeight?: boolean | null;       // Для весовых товаров (краска, эмаль и т.д.)
   quantityStep?: number;           // Шаг изменения количества (для весовых товаров)
   minQuantity?: number;            // Минимальное количество для заказа
 }
@@ -57,7 +59,7 @@ export interface CartItem {
   productId: string;               // UUID товара
   title: string;                   // Название товара
   urlId: string;                   // URL-идентификатор
-  image?: string;
+  image?: string | null;
   price: number;
   size?: string;                   // Выбранный размер (если есть)
   quantity: number;

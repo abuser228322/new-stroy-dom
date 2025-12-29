@@ -18,7 +18,7 @@ import {
   FaRulerCombined,
   FaBoxOpen
 } from 'react-icons/fa';
-import { menuCategories } from '../mock/menuCategories';
+import { getAllCategories } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
   title: 'Каталог строительных материалов | Строй Дом Астрахань',
@@ -62,7 +62,13 @@ const categoryStyles: Record<string, { icon: React.ElementType; gradient: string
 
 const defaultStyle = { icon: FaBoxOpen, gradient: 'from-gray-400 to-gray-600', bgColor: 'bg-gray-50' };
 
-export default function CatalogPage() {
+// Принудительно динамический рендеринг для получения данных из БД
+export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
+export default async function CatalogPage() {
+  const categories = await getAllCategories();
+  
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Хлебные крошки */}
@@ -92,7 +98,7 @@ export default function CatalogPage() {
           </p>
           <div className="flex gap-6 mt-8">
             <div className="text-center">
-              <div className="text-3xl font-bold">{menuCategories.length}</div>
+              <div className="text-3xl font-bold">{categories.length}</div>
               <div className="text-sm text-slate-400">категорий</div>
             </div>
             <div className="text-center">
@@ -106,7 +112,7 @@ export default function CatalogPage() {
       {/* Сетка категорий */}
       <section className="container mx-auto px-4 py-10 lg:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {menuCategories.map((category) => {
+          {categories.map((category) => {
             const style = categoryStyles[category.slug] || defaultStyle;
             const IconComponent = style.icon;
             

@@ -97,7 +97,7 @@ export default function ContactForm() {
                 <div>
                   <p className="text-sm text-gray-500">Режим работы</p>
                   <p className="text-lg font-bold text-gray-900">
-                    Пн-Сб: 08:00 - 16:00
+                    Пн-Сб: 08:00-16:00, Вск: 08:00-14:00
                   </p>
                 </div>
               </div>

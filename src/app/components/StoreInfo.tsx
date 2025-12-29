@@ -20,7 +20,7 @@ const CONTACT_INFO = {
   email: 'info@stroydom30.ru',
   workDays: {
     weekdays: { start: 8, end: 16 }, // Пн-Сб 08:00-16:00
-    sunday: null, // Воскресенье - выходной
+    sunday: { start: 8, end: 14 }, // Воскресенье 08:00-14:00
   },
 };
 
@@ -31,14 +31,34 @@ function getStoreStatus(): StoreStatus {
   const minutes = now.getMinutes();
   const currentTime = hours + minutes / 60;
 
+  // Воскресенье: 08:00-14:00
   if (day === 0) {
+    const { start, end } = CONTACT_INFO.workDays.sunday;
+    
+    if (currentTime < start) {
+      return {
+        isOpen: false,
+        message: 'Магазин закрыт',
+        nextChange: `Откроемся сегодня в ${String(start).padStart(2, '0')}:00`,
+      };
+    }
+    
+    if (currentTime >= end) {
+      return {
+        isOpen: false,
+        message: 'Магазин закрыт',
+        nextChange: 'Откроемся в понедельник в 08:00',
+      };
+    }
+    
     return {
-      isOpen: false,
-      message: 'Сегодня выходной',
-      nextChange: 'Откроемся в понедельник в 08:00',
+      isOpen: true,
+      message: 'Сейчас открыто',
+      nextChange: `Закроемся в ${String(end).padStart(2, '0')}:00`,
     };
   }
 
+  // Пн-Сб: 08:00-16:00
   const { start, end } = CONTACT_INFO.workDays.weekdays;
 
   if (currentTime < start) {
@@ -54,7 +74,7 @@ function getStoreStatus(): StoreStatus {
       return {
         isOpen: false,
         message: 'Магазин закрыт',
-        nextChange: 'Откроемся в понедельник в 08:00',
+        nextChange: 'Откроемся в воскресенье в 08:00',
       };
     }
     return {
@@ -207,9 +227,9 @@ export default function StoreInfo({ className = '' }: StoreInfoProps) {
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <span className="text-gray-600">Понедельник - Суббота:</span>
-              <span className="font-medium text-gray-900">08:00 - 16:00</span>
+              <span className="font-medium text-gray-900">08:00-16:00</span>
               <span className="text-gray-600">Воскресенье:</span>
-              <span className="font-medium text-gray-500">Выходной</span>
+              <span className="font-medium text-gray-900">08:00-14:00</span>
             </div>
           </div>
 

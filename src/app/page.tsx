@@ -57,7 +57,7 @@ export default function Home() {
               {/* Бейдж */}
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-sm font-medium">Работаем: Пн-Сб 08:00-16:00</span>
+                <span className="text-sm font-medium">Работаем: Пн-Сб 08:00-16:00, Вск 08:00-14:00</span>
               </div>
               
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 leading-tight">

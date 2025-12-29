@@ -5,7 +5,7 @@ import {
   FaCube, FaPaintBrush, FaSquare, FaTint, FaWrench, 
   FaRuler, FaLayerGroup, FaBoxOpen, FaChevronRight 
 } from 'react-icons/fa';
-import { menuCategories, getCategoryBySlug } from '../../mock/menuCategories';
+import { getCategoryBySlug, getAllCategories } from '@/lib/db/queries';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -16,7 +16,7 @@ interface CategoryPageProps {
 // Генерация метаданных
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
-  const category = getCategoryBySlug(categorySlug);
+  const category = await getCategoryBySlug(categorySlug);
 
   if (!category) {
     return {
@@ -36,11 +36,16 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   };
 }
 
-// Генерация статических путей
+// Генерация статических путей (для ISR)
 export async function generateStaticParams() {
-  return menuCategories.map((category) => ({
-    category: category.slug,
-  }));
+  try {
+    const categories = await getAllCategories();
+    return categories.map((category) => ({
+      category: category.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 // Иконки и цвета для подкатегорий
@@ -56,9 +61,13 @@ const subcategoryIcons: Record<string, { icon: React.ElementType; color: string 
 
 const defaultIcon = { icon: FaBoxOpen, color: 'bg-sky-100 text-sky-600' };
 
+// Принудительно динамический рендеринг для получения данных из БД
+export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Ревалидация каждые 60 секунд
+
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category: categorySlug } = await params;
-  const category = getCategoryBySlug(categorySlug);
+  const category = await getCategoryBySlug(categorySlug);
 
   if (!category) {
     notFound();

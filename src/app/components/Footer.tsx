@@ -2,21 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { menuCategories } from '../mock/menuCategories';
+import { useCategories } from '@/hooks/useCategories';
 
 const CONTACT_INFO = {
   phone: '8-937-133-33-66',
   phoneClean: '+79371333366',
   address: 'г. Астрахань, ул. Рыбинская, 25Н',
   email: 'info@stroydom30.ru',
-  workHours: 'Пн-Сб: 08:00 - 16:00',
+  workHoursWeekday: 'Пн-Сб: 08:00-16:00',
+  workHoursSunday: 'Вск: 08:00-14:00',
 };
 
 const FOOTER_LINKS = {
-  catalog: menuCategories.slice(0, 8).map((cat) => ({
-    name: cat.name,
-    href: `/catalog/${cat.slug}`,
-  })),
   info: [
     { name: 'Доставка и оплата', href: '/payment' },
     { name: 'Акции', href: '/sales' },
@@ -85,6 +82,13 @@ function AccordionSection({ title, sectionKey, items, isOpen, onToggle }: Accord
 
 export default function Footer() {
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const { categories } = useCategories();
+
+  // Генерируем ссылки каталога из БД
+  const catalogLinks = categories.slice(0, 8).map((cat) => ({
+    name: cat.name,
+    href: `/catalog/${cat.slug}`,
+  }));
 
   const handleToggle = (section: string) => {
     setOpenSection(openSection === section ? null : section);
@@ -99,7 +103,7 @@ export default function Footer() {
         <AccordionSection
           title="Каталог"
           sectionKey="catalog"
-          items={FOOTER_LINKS.catalog}
+          items={catalogLinks}
           isOpen={openSection === 'catalog'}
           onToggle={() => handleToggle('catalog')}
         />
@@ -175,7 +179,10 @@ export default function Footer() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span>{CONTACT_INFO.workHours}</span>
+                  <div className="flex flex-col">
+                    <span>{CONTACT_INFO.workHoursWeekday}</span>
+                    <span className="text-sm text-gray-400">{CONTACT_INFO.workHoursSunday}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -184,7 +191,7 @@ export default function Footer() {
             <div className="col-span-3">
               <h3 className="text-lg font-bold text-white mb-4">Каталог</h3>
               <ul className="space-y-2.5">
-                {FOOTER_LINKS.catalog.map((item) => (
+                {catalogLinks.map((item) => (
                   <li key={item.href}>
                     <Link
                       href={item.href}
@@ -301,7 +308,8 @@ export default function Footer() {
               >
                 {CONTACT_INFO.phone}
               </a>
-              <p className="text-sm text-gray-500">{CONTACT_INFO.workHours}</p>
+              <p className="text-sm text-gray-500">{CONTACT_INFO.workHoursWeekday}</p>
+              <p className="text-xs text-gray-500">{CONTACT_INFO.workHoursSunday}</p>
             </div>
 
             {/* Ссылка на разработчика */}

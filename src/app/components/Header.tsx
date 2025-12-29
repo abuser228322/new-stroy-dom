@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
-import { menuCategories } from '../mock/menuCategories';
+import { useCategories, type Category } from '@/hooks/useCategories';
 
 // Статус работы магазина
 function StoreStatus() {
@@ -13,24 +13,22 @@ function StoreStatus() {
   useEffect(() => {
     const now = new Date();
     const hours = now.getHours();
+    const minutes = now.getMinutes();
     const day = now.getDay();
+    const currentTime = hours + minutes / 60;
     
-    // Пн-Пт: 8:00-18:00, Сб: 9:00-16:00, Вс: выходной
-    const isWeekday = day >= 1 && day <= 5;
-    const isSaturday = day === 6;
+    // Новый график: Пн-Сб: 08:00-16:00, Вск: 08:00-14:00
     const isSunday = day === 0;
+    const isWeekdayOrSaturday = day >= 1 && day <= 6;
     
     if (isSunday) {
-      setStatusText('Сегодня выходной');
-      setIsOpen(false);
-    } else if (isSaturday) {
-      const open = hours >= 9 && hours < 16;
+      const open = currentTime >= 8 && currentTime < 14;
       setIsOpen(open);
-      setStatusText(open ? 'Открыто до 16:00' : 'Сб: 9:00-16:00');
-    } else if (isWeekday) {
-      const open = hours >= 8 && hours < 18;
+      setStatusText(open ? 'Открыто до 14:00' : 'Вск: 08:00-14:00');
+    } else if (isWeekdayOrSaturday) {
+      const open = currentTime >= 8 && currentTime < 16;
       setIsOpen(open);
-      setStatusText(open ? 'Открыто до 18:00' : 'Пн-Пт: 8:00-18:00');
+      setStatusText(open ? 'Открыто до 16:00' : 'Пн-Сб: 08:00-16:00');
     }
   }, []);
   
@@ -54,6 +52,7 @@ export default function Header() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { items } = useCart();
+  const { categories: menuCategories, loading: categoriesLoading } = useCategories();
   const catalogRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -154,7 +153,7 @@ export default function Header() {
                     {menuCategories.map((category) => (
                       <Link
                         key={category.slug}
-                        href={category.href}
+                        href={`/catalog/${category.slug}`}
                         className={`flex items-center justify-between px-4 py-2.5 text-sm transition-all ${
                           activeCategory === category.slug
                             ? 'bg-sky-500 text-white'
@@ -184,7 +183,7 @@ export default function Header() {
                             {activeCategoryData.subcategories.map((sub) => (
                               <Link
                                 key={sub.slug}
-                                href={sub.href}
+                                href={`/catalog/${activeCategoryData.slug}/${sub.slug}`}
                                 className="px-3 py-2 text-sm text-gray-600 hover:bg-sky-50 hover:text-sky-600 rounded transition-colors"
                               >
                                 {sub.name}
@@ -195,7 +194,7 @@ export default function Header() {
                           <p className="text-sm text-gray-500">Нет подкатегорий</p>
                         )}
                         <Link
-                          href={activeCategoryData.href}
+                          href={`/catalog/${activeCategoryData.slug}`}
                           className="inline-block ml-3 mt-4 text-sm text-sky-600 hover:text-sky-700 font-medium"
                         >
                           Смотреть все →

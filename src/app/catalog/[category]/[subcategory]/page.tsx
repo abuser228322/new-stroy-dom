@@ -2,11 +2,11 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
-  menuCategories,
   getCategoryBySlug,
   getSubcategoryBySlug,
-} from '../../../mock/menuCategories';
-import { getProductsBySlugs } from '../../../mock/products';
+  getAllCategories,
+  getProducts,
+} from '@/lib/db/queries';
 import ProductCard from '../../../components/ProductCard';
 
 interface SubcategoryPageProps {
@@ -19,8 +19,8 @@ interface SubcategoryPageProps {
 // Генерация метаданных
 export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
   const { category: categorySlug, subcategory: subcategorySlug } = await params;
-  const category = getCategoryBySlug(categorySlug);
-  const subcategory = getSubcategoryBySlug(categorySlug, subcategorySlug);
+  const category = await getCategoryBySlug(categorySlug);
+  const subcategory = await getSubcategoryBySlug(categorySlug, subcategorySlug);
 
   if (!category || !subcategory) {
     return {
@@ -42,32 +42,44 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
 
 // Генерация статических путей
 export async function generateStaticParams() {
-  const paths: { category: string; subcategory: string }[] = [];
+  try {
+    const categories = await getAllCategories();
+    const paths: { category: string; subcategory: string }[] = [];
 
-  menuCategories.forEach((category) => {
-    category.subcategories.forEach((subcategory) => {
-      paths.push({
-        category: category.slug,
-        subcategory: subcategory.slug,
+    categories.forEach((category) => {
+      category.subcategories.forEach((subcategory) => {
+        paths.push({
+          category: category.slug,
+          subcategory: subcategory.slug,
+        });
       });
     });
-  });
 
-  return paths;
+    return paths;
+  } catch {
+    return [];
+  }
 }
+
+// Принудительно динамический рендеринг для получения данных из БД
+export const dynamic = 'force-dynamic';
+export const revalidate = 60; // Ревалидация каждые 60 секунд
 
 export default async function SubcategoryPage({ params }: SubcategoryPageProps) {
   const { category: categorySlug, subcategory: subcategorySlug } = await params;
 
-  const category = getCategoryBySlug(categorySlug);
-  const subcategory = getSubcategoryBySlug(categorySlug, subcategorySlug);
+  const category = await getCategoryBySlug(categorySlug);
+  const subcategory = await getSubcategoryBySlug(categorySlug, subcategorySlug);
 
   if (!category || !subcategory) {
     notFound();
   }
 
-  // Получаем товары из products.ts
-  const products = getProductsBySlugs(categorySlug, subcategorySlug);
+  // Получаем товары из БД
+  const { products } = await getProducts({ 
+    categorySlug, 
+    subcategorySlug 
+  });
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
