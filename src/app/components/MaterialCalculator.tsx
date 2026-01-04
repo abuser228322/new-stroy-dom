@@ -18,6 +18,7 @@ type MaterialCategory =
 // Конкретные продукты с реальным расходом
 interface ProductOption {
   id: string;
+  catalogProductId?: number; // ID товара в каталоге для связи с корзиной
   name: string;
   consumption: number;      // Расход на единицу
   consumptionUnit: string;  // Единица расхода (кг/м² при 10мм, л/м² и т.д.)
@@ -522,6 +523,7 @@ interface MaterialCalculatorProps {
 // Интерфейсы для данных из API
 interface ApiProduct {
   id: number;
+  catalogProductId: number | null; // ID товара в каталоге для связи
   name: string;
   consumption: number;
   consumptionUnit: string;
@@ -619,6 +621,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
           icon: dbCat.icon,
           products: dbCat.products.map(p => ({
             id: p.id.toString(),
+            catalogProductId: p.catalogProductId || undefined, // Реальный ID товара в каталоге
             name: p.name,
             consumption: p.consumption,
             consumptionUnit: p.consumptionUnit,
@@ -690,8 +693,13 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
   const handleAddToCart = () => {
     if (!selectedProduct.productUrlId || !selectedProduct.price) return;
     
+    // Используем catalogProductId (реальный ID товара) если есть, иначе id записи калькулятора
+    const productIdForCart = selectedProduct.catalogProductId 
+      ? selectedProduct.catalogProductId.toString() 
+      : selectedProduct.id;
+    
     addItem({
-      productId: selectedProduct.id,
+      productId: productIdForCart,
       title: selectedProduct.name,
       urlId: selectedProduct.productUrlId,
       image: null,

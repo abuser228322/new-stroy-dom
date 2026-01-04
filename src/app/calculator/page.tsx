@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function CalculatorPage() {
   return (
-    <main className="min-h-screen bg-gray-50 pb-12">
+    <div className="bg-gray-50 pb-12">
       {/* Хлебные крошки */}
       <div className="container mx-auto px-4 py-3">
         <nav className="flex items-center gap-2 text-sm text-gray-500">
@@ -28,8 +28,8 @@ export default function CalculatorPage() {
         </nav>
       </div>
 
-      {/* Калькулятор в развёрнутом виде */}
-      <MaterialCalculator alwaysExpanded className="!py-0" />
+      {/* Калькулятор в развёрнутом виде - данные из БД */}
+      <MaterialCalculator alwaysExpanded useDatabase className="!py-0" />
 
       {/* Информационный блок */}
       <section className="container mx-auto px-4 mt-8">
@@ -109,6 +109,6 @@ export default function CalculatorPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

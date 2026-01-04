@@ -236,7 +236,7 @@ async function seedCalculator() {
 
     // Создаем inputs
     for (let j = 0; j < cat.inputs.length; j++) {
-      const input = cat.inputs[j];
+      const input = cat.inputs[j] as any;
       await db.insert(calculatorInputs).values({
         categoryId: category.id,
         key: input.key,
@@ -244,7 +244,7 @@ async function seedCalculator() {
         unit: input.unit,
         defaultValue: input.defaultValue,
         minValue: input.minValue,
-        maxValue: input.maxValue || null,
+        maxValue: input.maxValue ?? null,
         step: input.step,
         sortOrder: j + 1,
       });

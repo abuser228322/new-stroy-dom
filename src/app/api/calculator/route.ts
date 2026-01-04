@@ -39,6 +39,7 @@ export async function GET() {
           ...category,
           products: products.map(p => ({
             id: p.id.toString(),
+            catalogProductId: p.productId, // ID товара в каталоге для связи
             name: p.name,
             consumption: p.consumption,
             consumptionUnit: p.consumptionUnit,
