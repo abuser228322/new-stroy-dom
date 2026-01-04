@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 // GET - Получить input
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string; inputId: string }> }
+  { params }: { params: Promise<{ id: string; inputId: string }> }
 ) {
   try {
     const { inputId } = await params;
@@ -36,7 +36,7 @@ export async function GET(
 // PUT - Обновить input
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string; inputId: string }> }
+  { params }: { params: Promise<{ id: string; inputId: string }> }
 ) {
   try {
     const { inputId } = await params;
@@ -71,7 +71,7 @@ export async function PUT(
 // DELETE - Удалить input
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string; inputId: string }> }
+  { params }: { params: Promise<{ id: string; inputId: string }> }
 ) {
   try {
     const { inputId } = await params;

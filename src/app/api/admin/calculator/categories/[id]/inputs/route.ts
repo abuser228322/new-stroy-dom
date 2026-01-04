@@ -6,15 +6,15 @@ import { eq, desc } from 'drizzle-orm';
 // GET - Получить все inputs категории
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     
     const inputsList = await db
       .select()
       .from(calculatorInputs)
-      .where(eq(calculatorInputs.categoryId, parseInt(categoryId)))
+      .where(eq(calculatorInputs.categoryId, parseInt(id)))
       .orderBy(calculatorInputs.sortOrder);
 
     return NextResponse.json(inputsList);
@@ -30,17 +30,17 @@ export async function GET(
 // POST - Создать input
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     const body = await request.json();
 
     // Получаем максимальный sortOrder
     const [maxSort] = await db
       .select({ maxOrder: calculatorInputs.sortOrder })
       .from(calculatorInputs)
-      .where(eq(calculatorInputs.categoryId, parseInt(categoryId)))
+      .where(eq(calculatorInputs.categoryId, parseInt(id)))
       .orderBy(desc(calculatorInputs.sortOrder))
       .limit(1);
 
@@ -49,7 +49,7 @@ export async function POST(
     const [newInput] = await db
       .insert(calculatorInputs)
       .values({
-        categoryId: parseInt(categoryId),
+        categoryId: parseInt(id),
         key: body.key,
         label: body.label,
         unit: body.unit || '',

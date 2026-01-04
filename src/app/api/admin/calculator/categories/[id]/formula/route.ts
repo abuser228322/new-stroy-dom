@@ -6,15 +6,15 @@ import { eq } from 'drizzle-orm';
 // GET - Получить формулу категории
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     
     const [formula] = await db
       .select()
       .from(calculatorFormulas)
-      .where(eq(calculatorFormulas.categoryId, parseInt(categoryId)));
+      .where(eq(calculatorFormulas.categoryId, parseInt(id)));
 
     if (!formula) {
       return NextResponse.json(null);
@@ -33,17 +33,17 @@ export async function GET(
 // POST - Создать или обновить формулу (upsert)
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     const body = await request.json();
 
     // Проверяем, существует ли формула
     const [existing] = await db
       .select()
       .from(calculatorFormulas)
-      .where(eq(calculatorFormulas.categoryId, parseInt(categoryId)));
+      .where(eq(calculatorFormulas.categoryId, parseInt(id)));
 
     let result;
     if (existing) {
@@ -58,14 +58,14 @@ export async function POST(
           recommendationsTemplate: body.recommendationsTemplate || null,
           updatedAt: new Date(),
         })
-        .where(eq(calculatorFormulas.categoryId, parseInt(categoryId)))
+        .where(eq(calculatorFormulas.categoryId, parseInt(id)))
         .returning();
     } else {
       // Создаем
       [result] = await db
         .insert(calculatorFormulas)
         .values({
-          categoryId: parseInt(categoryId),
+          categoryId: parseInt(id),
           formulaType: body.formulaType,
           formulaParams: body.formulaParams || {},
           resultUnit: body.resultUnit,
@@ -88,14 +88,14 @@ export async function POST(
 // DELETE - Удалить формулу
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     
     await db
       .delete(calculatorFormulas)
-      .where(eq(calculatorFormulas.categoryId, parseInt(categoryId)));
+      .where(eq(calculatorFormulas.categoryId, parseInt(id)));
 
     return NextResponse.json({ success: true });
   } catch (error) {

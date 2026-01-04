@@ -6,10 +6,10 @@ import { eq, desc } from 'drizzle-orm';
 // GET - Получить все продукты категории
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     
     const productsList = await db
       .select({
@@ -31,7 +31,7 @@ export async function GET(
       })
       .from(calculatorProducts)
       .leftJoin(products, eq(calculatorProducts.productId, products.id))
-      .where(eq(calculatorProducts.categoryId, parseInt(categoryId)))
+      .where(eq(calculatorProducts.categoryId, parseInt(id)))
       .orderBy(calculatorProducts.sortOrder);
 
     return NextResponse.json(productsList);
@@ -47,17 +47,17 @@ export async function GET(
 // POST - Создать продукт
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { categoryId } = await params;
+    const { id } = await params;
     const body = await request.json();
 
     // Получаем максимальный sortOrder
     const [maxSort] = await db
       .select({ maxOrder: calculatorProducts.sortOrder })
       .from(calculatorProducts)
-      .where(eq(calculatorProducts.categoryId, parseInt(categoryId)))
+      .where(eq(calculatorProducts.categoryId, parseInt(id)))
       .orderBy(desc(calculatorProducts.sortOrder))
       .limit(1);
 
@@ -66,7 +66,7 @@ export async function POST(
     const [newProduct] = await db
       .insert(calculatorProducts)
       .values({
-        categoryId: parseInt(categoryId),
+        categoryId: parseInt(id),
         productId: body.productId || null,
         name: body.name,
         consumption: body.consumption,

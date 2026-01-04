@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { calculatorProducts } from '@/lib/db/schema';
-import { eq, gt, lt, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // GET - Получить продукт
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string; productId: string }> }
+  { params }: { params: Promise<{ id: string; productId: string }> }
 ) {
   try {
     const { productId } = await params;
@@ -36,7 +36,7 @@ export async function GET(
 // PUT - Обновить продукт
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string; productId: string }> }
+  { params }: { params: Promise<{ id: string; productId: string }> }
 ) {
   try {
     const { productId } = await params;
@@ -71,7 +71,7 @@ export async function PUT(
 // DELETE - Удалить продукт
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string; productId: string }> }
+  { params }: { params: Promise<{ id: string; productId: string }> }
 ) {
   try {
     const { productId } = await params;
