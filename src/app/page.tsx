@@ -5,6 +5,7 @@ import HeroSlider from './components/HeroSlider';
 import PopularCategories from './components/PopularCategories';
 import StoreInfo from './components/StoreInfo';
 import ContactForm from './components/ContactForm';
+import MaterialCalculator from './components/MaterialCalculator';
 
 export const metadata: Metadata = {
   title: 'Строй Дом - Магазин строительных материалов в Астрахани',
@@ -284,6 +285,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Калькулятор материалов */}
+      <MaterialCalculator />
 
       {/* Информация о магазине */}
       <section className="container mx-auto px-4 py-12">

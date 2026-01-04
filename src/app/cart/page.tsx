@@ -11,6 +11,13 @@ const CONTACT_INFO = {
   phoneClean: '+79371333366',
 };
 
+interface AppliedCoupon {
+  code: string;
+  discountType: 'percent' | 'fixed';
+  discountValue: number;
+  maxDiscountAmount: number | null;
+}
+
 export default function CartPage() {
   const { items, updateQuantity, removeItem, totalAmount, totalItems, clearCart } = useCart();
   const [isCheckout, setIsCheckout] = useState(false);
@@ -25,6 +32,77 @@ export default function CartPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  
+  // Купон
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
+  // Расчёт скидки по купону
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+    
+    if (appliedCoupon.discountType === 'percent') {
+      const discount = totalAmount * (appliedCoupon.discountValue / 100);
+      // Учитываем максимальную скидку
+      if (appliedCoupon.maxDiscountAmount) {
+        return Math.min(discount, appliedCoupon.maxDiscountAmount);
+      }
+      return discount;
+    } else {
+      return Math.min(appliedCoupon.discountValue, totalAmount);
+    }
+  };
+
+  const discountAmount = calculateDiscount();
+  const finalAmount = totalAmount - discountAmount;
+
+  // Применение купона
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Введите код купона');
+      return;
+    }
+    
+    setCouponLoading(true);
+    setCouponError('');
+    
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          code: couponCode.trim().toUpperCase(),
+          orderAmount: totalAmount 
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.valid) {
+        setAppliedCoupon({
+          code: data.coupon.code,
+          discountType: data.coupon.discountType,
+          discountValue: data.coupon.discountValue,
+          maxDiscountAmount: data.coupon.maxDiscountAmount,
+        });
+        setCouponCode('');
+      } else {
+        setCouponError(data.error || 'Недействительный купон');
+      }
+    } catch {
+      setCouponError('Ошибка проверки купона');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  // Удаление купона
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError('');
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU').format(price);
@@ -244,6 +322,66 @@ export default function CartPage() {
               {!isCheckout ? (
                 <>
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Итого</h2>
+                  
+                  {/* Купон */}
+                  <div className="mb-6">
+                    {appliedCoupon ? (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="font-medium text-green-800">{appliedCoupon.code}</span>
+                          </div>
+                          <button
+                            onClick={handleRemoveCoupon}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">
+                          Скидка: {appliedCoupon.discountType === 'percent' 
+                            ? `${appliedCoupon.discountValue}%` 
+                            : `${formatPrice(appliedCoupon.discountValue)} ₽`}
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Промокод
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => {
+                              setCouponCode(e.target.value.toUpperCase());
+                              setCouponError('');
+                            }}
+                            placeholder="Введите код"
+                            className={`flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all ${
+                              couponError ? 'border-red-300' : 'border-gray-200'
+                            }`}
+                          />
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={couponLoading}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50 text-sm"
+                          >
+                            {couponLoading ? '...' : 'Применить'}
+                          </button>
+                        </div>
+                        {couponError && (
+                          <p className="text-sm text-red-500 mt-1">{couponError}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span>Товаров:</span>
@@ -253,9 +391,15 @@ export default function CartPage() {
                       <span>Сумма:</span>
                       <span>{formatPrice(totalAmount)} ₽</span>
                     </div>
+                    {appliedCoupon && discountAmount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Скидка:</span>
+                        <span>-{formatPrice(discountAmount)} ₽</span>
+                      </div>
+                    )}
                     <div className="pt-3 border-t border-gray-100 flex justify-between text-lg font-bold text-gray-900">
                       <span>К оплате:</span>
-                      <span>{formatPrice(totalAmount)} ₽</span>
+                      <span>{formatPrice(finalAmount)} ₽</span>
                     </div>
                   </div>
 

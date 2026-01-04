@@ -375,3 +375,17 @@ body {
   max-height: calc(100vh - 76px - 61px);
   min-height: auto;
 }
+
+/* Mobile menu slide-in animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.25s ease-out forwards;
+}

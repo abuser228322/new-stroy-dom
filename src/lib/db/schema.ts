@@ -1,9 +1,81 @@
-import { pgTable, serial, text, numeric, varchar, timestamp, boolean, integer, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, varchar, timestamp, boolean, integer, jsonb, pgEnum, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ==================== ENUMS ====================
 
 export const userRoleEnum = pgEnum("user_role", ["SUPERADMIN", "ADMIN", "MODER", "USER"]);
+
+// ==================== КАЛЬКУЛЯТОР МАТЕРИАЛОВ ====================
+
+// Категории калькулятора (штукатурка, шпатлёвка, плиточный клей и т.д.)
+export const calculatorCategories = pgTable("calculator_categories", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(), // plaster, putty, tile_glue
+  name: varchar("name", { length: 255 }).notNull(), // Штукатурка
+  description: text("description"),
+  icon: varchar("icon", { length: 50 }), // Emoji или иконка
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Поля ввода для категорий калькулятора
+export const calculatorInputs = pgTable("calculator_inputs", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").notNull().references(() => calculatorCategories.id, { onDelete: "cascade" }),
+  key: varchar("key", { length: 100 }).notNull(), // area, thickness, layers
+  label: varchar("label", { length: 255 }).notNull(), // Площадь поверхности
+  unit: varchar("unit", { length: 50 }).notNull(), // м², мм, шт
+  defaultValue: real("default_value").notNull(),
+  minValue: real("min_value").notNull(),
+  maxValue: real("max_value"), // Может быть null (без ограничения)
+  step: real("step").notNull(),
+  tooltip: text("tooltip"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Продукты калькулятора (конкретные товары с расходом)
+export const calculatorProducts = pgTable("calculator_products", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").notNull().references(() => calculatorCategories.id, { onDelete: "cascade" }),
+  productId: integer("product_id").references(() => products.id), // Связь с товаром в каталоге
+  
+  name: varchar("name", { length: 255 }).notNull(), // Волма Слой 30кг
+  consumption: real("consumption").notNull(), // 8.5 (расход)
+  consumptionUnit: varchar("consumption_unit", { length: 100 }).notNull(), // кг/м² при 10мм
+  bagWeight: real("bag_weight"), // 30 (вес мешка)
+  price: numeric("price", { precision: 10, scale: 2 }), // Цена (можно брать из товара)
+  tooltip: text("tooltip"), // Подсказка с информацией о расходе
+  productUrlId: varchar("product_url_id", { length: 255 }), // URL товара для корзины
+  
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Формулы расчёта для категорий (хранятся как JSON)
+export const calculatorFormulas = pgTable("calculator_formulas", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").notNull().references(() => calculatorCategories.id, { onDelete: "cascade" }).unique(),
+  
+  // Тип формулы и параметры
+  formulaType: varchar("formula_type", { length: 50 }).notNull(), // standard, paint, profnastil, sheets
+  formulaParams: jsonb("formula_params"), // Дополнительные параметры формулы
+  
+  // Единица результата
+  resultUnit: varchar("result_unit", { length: 100 }).notNull(), // мешков, листов, упаковок
+  resultUnitTemplate: varchar("result_unit_template", { length: 255 }), // мешков ({bagWeight}кг)
+  
+  // Рекомендации (шаблоны)
+  recommendationsTemplate: jsonb("recommendations_template"), // ["Добавьте 10-15% на неровности"]
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 // ==================== ПОЛЬЗОВАТЕЛИ ====================
 
@@ -237,3 +309,50 @@ export const couponUsagesRelations = relations(couponUsages, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// ==================== CALCULATOR RELATIONS ====================
+
+export const calculatorCategoriesRelations = relations(calculatorCategories, ({ many, one }) => ({
+  products: many(calculatorProducts),
+  inputs: many(calculatorInputs),
+  formula: one(calculatorFormulas),
+}));
+
+export const calculatorProductsRelations = relations(calculatorProducts, ({ one }) => ({
+  category: one(calculatorCategories, {
+    fields: [calculatorProducts.categoryId],
+    references: [calculatorCategories.id],
+  }),
+  product: one(products, {
+    fields: [calculatorProducts.productId],
+    references: [products.id],
+  }),
+}));
+
+export const calculatorInputsRelations = relations(calculatorInputs, ({ one }) => ({
+  category: one(calculatorCategories, {
+    fields: [calculatorInputs.categoryId],
+    references: [calculatorCategories.id],
+  }),
+}));
+
+export const calculatorFormulasRelations = relations(calculatorFormulas, ({ one }) => ({
+  category: one(calculatorCategories, {
+    fields: [calculatorFormulas.categoryId],
+    references: [calculatorCategories.id],
+  }),
+}));
+
+// ==================== CALCULATOR TYPES ====================
+
+export type CalculatorCategory = typeof calculatorCategories.$inferSelect;
+export type NewCalculatorCategory = typeof calculatorCategories.$inferInsert;
+
+export type CalculatorProduct = typeof calculatorProducts.$inferSelect;
+export type NewCalculatorProduct = typeof calculatorProducts.$inferInsert;
+
+export type CalculatorInput = typeof calculatorInputs.$inferSelect;
+export type NewCalculatorInput = typeof calculatorInputs.$inferInsert;
+
+export type CalculatorFormula = typeof calculatorFormulas.$inferSelect;
+export type NewCalculatorFormula = typeof calculatorFormulas.$inferInsert;

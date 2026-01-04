@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 
-export default function AccountPage() {
+function AccountContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading, logout, updateProfile, changePassword, setPassword } = useAuth();
   
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'orders'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -37,6 +40,18 @@ export default function AccountPage() {
       router.push('/login?redirect=/account');
     }
   }, [isAuthenticated, isLoading, router]);
+  
+  // Показываем модалку привязки Telegram для новых пользователей
+  useEffect(() => {
+    const isWelcome = searchParams.get('welcome') === '1';
+    if (isWelcome && user && !user.telegramId && !welcomeDismissed) {
+      // Небольшая задержка для плавности
+      const timer = setTimeout(() => {
+        setShowTelegramModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, user, welcomeDismissed]);
   
   useEffect(() => {
     if (user) {
@@ -195,6 +210,53 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
+        
+        {/* Модальное окно привязки Telegram */}
+        {showTelegramModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-300">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.015-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.14.12.098.153.228.168.326.015.146.033.312.015.481z"/>
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-slate-800 mb-2">Добро пожаловать! 🎉</h2>
+                <p className="text-slate-600 mb-4">
+                  Привяжите Telegram, чтобы быстрее входить в аккаунт и получать уведомления о заказах
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <a
+                  href="https://t.me/StroyDom30_bot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-[#0088cc] hover:bg-[#0077b5] text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                  onClick={() => {
+                    setShowTelegramModal(false);
+                    setWelcomeDismissed(true);
+                  }}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.015-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.015 3.333-1.386 4.025-1.627 4.477-1.635.099-.002.321.023.465.14.12.098.153.228.168.326.015.146.033.312.015.481z"/>
+                  </svg>
+                  Привязать Telegram
+                </a>
+                
+                <button
+                  onClick={() => {
+                    setShowTelegramModal(false);
+                    setWelcomeDismissed(true);
+                  }}
+                  className="w-full text-slate-500 hover:text-slate-700 font-medium py-2 transition-colors"
+                >
+                  Позже
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Уведомление */}
         {message && (
@@ -502,5 +564,21 @@ export default function AccountPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function AccountFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-sky-500"></div>
+    </div>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={<AccountFallback />}>
+      <AccountContent />
+    </Suspense>
   );
 }

@@ -19,11 +19,12 @@ function RegisterContent() {
     firstName: '',
     lastName: '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const redirect = searchParams.get('redirect') || '/account';
+  const redirect = searchParams.get('redirect') || '/account?welcome=1';
   
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -32,29 +33,95 @@ function RegisterContent() {
   }, [isAuthenticated, isLoading, router, redirect]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+    // Очищаем ошибку поля при вводе
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // Форматирование телефона
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length === 0) return '';
+    if (digits.length <= 1) return `+7`;
+    if (digits.length <= 4) return `+7 (${digits.slice(1)}`;
+    if (digits.length <= 7) return `+7 (${digits.slice(1, 4)}) ${digits.slice(4)}`;
+    if (digits.length <= 9) return `+7 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+    return `+7 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setFormData(prev => ({ ...prev, phone: formatted }));
+    if (errors.phone) {
+      setErrors(prev => ({ ...prev, phone: '' }));
+    }
+  };
+
+  // Валидация полей
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    // Логин
+    if (!formData.username.trim()) {
+      newErrors.username = 'Введите логин';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Минимум 3 символа';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username = 'Только латиница, цифры и _';
+    }
+    
+    // Имя (обязательное)
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Введите имя';
+    } else if (formData.firstName.length < 2) {
+      newErrors.firstName = 'Минимум 2 символа';
+    }
+    
+    // Email
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        newErrors.email = 'Некорректный email';
+      }
+    }
+    
+    // Телефон
+    if (formData.phone) {
+      const phoneDigits = formData.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 11) {
+        newErrors.phone = 'Введите полный номер';
+      }
+    }
+    
+    // Пароль
+    if (!formData.password) {
+      newErrors.password = 'Введите пароль';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Минимум 6 символов';
+    } else if (!/(?=.*[0-9])/.test(formData.password)) {
+      newErrors.password = 'Добавьте хотя бы одну цифру';
+    }
+    
+    // Подтверждение пароля
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Пароли не совпадают';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    // Валидация
-    if (formData.username.length < 3) {
-      setError('Логин должен содержать минимум 3 символа');
-      return;
-    }
-    
-    if (formData.password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
-      return;
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError('Пароли не совпадают');
+    if (!validateForm()) {
       return;
     }
     
@@ -64,8 +131,8 @@ function RegisterContent() {
       username: formData.username,
       password: formData.password,
       email: formData.email || undefined,
-      phone: formData.phone || undefined,
-      firstName: formData.firstName || undefined,
+      phone: formData.phone ? formData.phone.replace(/\D/g, '') : undefined,
+      firstName: formData.firstName,
       lastName: formData.lastName || undefined,
     });
     
@@ -117,17 +184,17 @@ function RegisterContent() {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                placeholder="Придумайте логин"
-                required
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.username ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
+                placeholder="Придумайте логин (латиница)"
                 disabled={isSubmitting}
               />
+              {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-2">
-                  Имя
+                  Имя <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -135,10 +202,11 @@ function RegisterContent() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
-                  placeholder="Имя"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.firstName ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
+                  placeholder="Ваше имя"
                   disabled={isSubmitting}
                 />
+                {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-2">
@@ -167,10 +235,11 @@ function RegisterContent() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.email ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
                 placeholder="email@example.com"
                 disabled={isSubmitting}
               />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
             
             <div>
@@ -182,11 +251,12 @@ function RegisterContent() {
                 id="phone"
                 name="phone"
                 value={formData.phone}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                onChange={handlePhoneChange}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.phone ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
                 placeholder="+7 (___) ___-__-__"
                 disabled={isSubmitting}
               />
+              {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
             </div>
             
             <div>
@@ -200,9 +270,8 @@ function RegisterContent() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors pr-12"
-                  placeholder="Минимум 6 символов"
-                  required
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors pr-12 ${errors.password ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
+                  placeholder="Минимум 6 символов + цифра"
                   disabled={isSubmitting}
                 />
                 <button
@@ -222,6 +291,7 @@ function RegisterContent() {
                   )}
                 </button>
               </div>
+              {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
             
             <div>
@@ -234,11 +304,11 @@ function RegisterContent() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-slate-200'}`}
                 placeholder="Повторите пароль"
-                required
                 disabled={isSubmitting}
               />
+              {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
             </div>
             
             <button
