@@ -482,7 +482,8 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
           product.name?.toLowerCase().includes('бетонокон') ||
           product.name?.toLowerCase().includes('грунт')
         );
-        const isGrams = consumptionUnit.includes('г/м²');
+        // ВАЖНО: проверяем г/м² но НЕ кг/м² (иначе 'кг/м²' попадёт сюда!)
+        const isGrams = consumptionUnit.includes('г/м²') && !consumptionUnit.includes('кг/м²');
         
         console.log('Unit detection:', {isLiquidLiters, isLiquidKg, isGrams, consumptionUnit});
         
