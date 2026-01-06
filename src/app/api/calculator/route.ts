@@ -82,7 +82,7 @@ export async function GET() {
             consumptionUnit: p.consumptionUnit || '',
             bagWeight: p.bagWeight,
             price: p.price ? parseFloat(p.price) : undefined,
-            tooltip: p.description?.substring(0, 100) || null,
+            tooltip: p.description || null,
             
             // Данные для корректной ссылки в корзину
             categorySlug: p.categorySlug,

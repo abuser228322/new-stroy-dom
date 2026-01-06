@@ -454,8 +454,23 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         }
         
         amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
-        unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : resultUnit;
-        details = `Общий расход: ${totalWeight.toFixed(1)} ${resultUnit}`;
+        
+        // Определяем единицу измерения в зависимости от типа товара
+        if (product.consumptionUnit.includes('л/м²')) {
+          // Грунтовка, краска - жидкости в канистрах/вёдрах
+          unit = product.bagWeight ? `канистр (${product.bagWeight}л)` : 'л';
+          details = `Общий расход: ${totalWeight.toFixed(1)} л`;
+        } else if (product.consumptionUnit.includes('г/м²')) {
+          // Краска в граммах -> переводим в кг
+          const totalKg = totalWeight / 1000;
+          amount = product.bagWeight ? Math.ceil(totalKg / product.bagWeight) : Math.ceil(totalKg);
+          unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
+          details = `Общий расход: ${totalKg.toFixed(1)} кг`;
+        } else {
+          // Сухие смеси в кг
+          unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : resultUnit;
+          details = `Общий расход: ${totalWeight.toFixed(1)} ${resultUnit}`;
+        }
         break;
       }
       
