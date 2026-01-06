@@ -484,28 +484,35 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         );
         const isGrams = consumptionUnit.includes('г/м²');
         
+        console.log('Unit detection:', {isLiquidLiters, isLiquidKg, isGrams, consumptionUnit});
+        
         if (isLiquidLiters) {
           // Грунтовка глубокого проникновения - жидкость в литрах
           amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `канистр (${product.bagWeight}л)` : 'л';
           details = `Общий расход: ${totalWeight.toFixed(1)} л`;
+          console.log('BRANCH: isLiquidLiters');
         } else if (isLiquidKg) {
           // Бетоноконтакт - густая смесь в кг, но в вёдрах
           amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalWeight.toFixed(1)} кг`;
+          console.log('BRANCH: isLiquidKg');
         } else if (isGrams) {
           // Краска в граммах -> переводим в кг
           const totalKg = totalWeight / 1000;
           amount = product.bagWeight ? Math.ceil(totalKg / product.bagWeight) : Math.ceil(totalKg);
           unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalKg.toFixed(1)} кг`;
+          console.log('BRANCH: isGrams, totalKg=', totalKg);
         } else {
           // Сухие смеси в кг - мешки!
           amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalWeight.toFixed(1)} кг`;
+          console.log('BRANCH: else (dry mix)');
         }
+        console.log('FINAL RESULT:', {amount, unit, totalWeight, details});
         break;
       }
       
