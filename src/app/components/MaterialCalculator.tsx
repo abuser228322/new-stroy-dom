@@ -715,6 +715,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
     // Если используем БД и данные загружены
     if (useDatabase && dbCategories.length > 0) {
       const dbCat = dbCategories.find(c => c.slug === selectedCategory);
+      console.log('=== DB MODE ===', {useDatabase, dbCategoriesLength: dbCategories.length, selectedCategory, foundDbCat: !!dbCat});
       if (dbCat) {
         // Конвертируем данные API в формат MaterialConfig
         const convertedConfig: MaterialConfig = {
@@ -759,6 +760,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
     }
     
     // Фолбэк на локальные данные
+    console.log('=== USING LOCAL CONFIG ===', selectedCategory);
     return {
       config: MATERIALS_CONFIG[selectedCategory as MaterialCategory] || MATERIALS_CONFIG.plaster,
       categories: Object.keys(MATERIALS_CONFIG) as string[],
