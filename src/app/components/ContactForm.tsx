@@ -3,6 +3,7 @@
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { FaPhone, FaMapMarkerAlt, FaClock, FaPaperPlane } from 'react-icons/fa';
 import type { CreateContactRequestData } from '../types/types';
+import { formatStoreHoursInline } from '../lib/storeHours';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState<CreateContactRequestData>({
@@ -97,7 +98,7 @@ export default function ContactForm() {
                 <div>
                   <p className="text-sm text-gray-500">Режим работы</p>
                   <p className="text-lg font-bold text-gray-900">
-                    Пн-Сб: 08:00-16:00, Вск: 08:00-14:00
+                    {formatStoreHoursInline()}
                   </p>
                 </div>
               </div>

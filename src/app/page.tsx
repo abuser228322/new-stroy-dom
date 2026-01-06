@@ -6,6 +6,7 @@ import PopularCategories from './components/PopularCategories';
 import StoreInfo from './components/StoreInfo';
 import ContactForm from './components/ContactForm';
 import MaterialCalculator from './components/MaterialCalculator';
+import { formatStoreHoursInline } from './lib/storeHours';
 
 export const metadata: Metadata = {
   title: 'Строй Дом - Магазин строительных материалов в Астрахани',
@@ -58,7 +59,7 @@ export default function Home() {
               {/* Бейдж */}
               <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-4 sm:mb-6 border border-white/20">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs sm:text-sm font-medium">Пн-Сб 08:00-16:00, Вск 08:00-14:00</span>
+                <span className="text-xs sm:text-sm font-medium">{formatStoreHoursInline()}</span>
               </div>
               
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">

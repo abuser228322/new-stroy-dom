@@ -25,6 +25,7 @@ export async function GET() {
             image: products.image,
             price: products.price,
             pricesBySize: products.pricesBySize,
+            sizeText: products.sizeText,
             unit: products.unit,
             brand: products.brand,
             inStock: products.inStock,
@@ -82,6 +83,9 @@ export async function GET() {
             consumptionUnit: p.consumptionUnit || '',
             bagWeight: p.bagWeight,
             price: p.price ? parseFloat(p.price) : undefined,
+            pricesBySize: (p.pricesBySize as Record<string, number> | null) ?? null,
+            sizeText: p.sizeText || null,
+            unit: p.unit || 'шт',
             tooltip: p.description || null,
             
             // Данные для корректной ссылки в корзину

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { FaTruck, FaCreditCard, FaMoneyBillWave, FaHandshake, FaFileInvoice, FaPercent } from "react-icons/fa";
+import { formatStoreHoursInline } from "../lib/storeHours";
 
 export const metadata: Metadata = {
   title: "Доставка и оплата | Строй Дом - Астрахань",
@@ -35,7 +36,7 @@ export default function PaymentPage() {
                 Заберите заказ самостоятельно с нашего склада по адресу:
               </p>
               <p className="font-medium text-gray-800 text-sm sm:text-base">г. Астрахань, ул. Рыбинская 25Н</p>
-              <p className="text-xs sm:text-sm text-gray-500 mt-2">Пн-Сб: 08:00-16:00, Вск: 08:00-14:00</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-2">{formatStoreHoursInline()}</p>
               <div className="mt-4 pt-4 border-t">
                 <span className="inline-block bg-success/10 text-success px-3 py-1 rounded-full text-sm font-medium">
                   Бесплатно

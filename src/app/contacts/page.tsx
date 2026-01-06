@@ -2,8 +2,10 @@
 
 import ContactForm from "../components/ContactForm";
 import { FaPhone, FaMapMarkerAlt, FaClock, FaEnvelope, FaTruck, FaBuilding } from "react-icons/fa";
+import { formatStoreHoursLines } from "../lib/storeHours";
 
 export default function ContactsPage() {
+  const hours = formatStoreHoursLines();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -56,8 +58,8 @@ export default function ContactsPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-1">Режим работы</h3>
-                  <p className="text-gray-700">Пн-Сб: 08:00-16:00</p>
-                  <p className="text-gray-700">Вск: 08:00-14:00</p>
+                  <p className="text-gray-700">{hours.monSat}</p>
+                  <p className="text-gray-700">{hours.sun}</p>
                 </div>
               </div>
 

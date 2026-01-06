@@ -5,6 +5,7 @@ import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import HammerCursor from "./components/HammerCursor";
 
 // Viewport configuration для мобильных браузеров
 export const viewport: Viewport = {
@@ -75,6 +76,7 @@ export default function RootLayout({
       <body className="min-w-[360px] bg-[var(--bg-secondary)] text-[var(--text-primary)]">
         <AuthProvider>
           <CartProvider>
+            <HammerCursor />
             <Header />
             <main>{children}</main>
             <Footer />

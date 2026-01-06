@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaClock, FaDirections, FaWarehouse } from 'react-icons/fa';
+import { formatStoreHoursLines } from '../lib/storeHours';
 
 interface StoreInfoProps {
   className?: string;
@@ -31,9 +32,10 @@ function getStoreStatus(): StoreStatus {
   const minutes = now.getMinutes();
   const currentTime = hours + minutes / 60;
 
-  // Воскресенье: 08:00-14:00
+  // Воскресенье
   if (day === 0) {
     const { start, end } = CONTACT_INFO.workDays.sunday;
+    const weekdayStart = CONTACT_INFO.workDays.weekdays.start;
     
     if (currentTime < start) {
       return {
@@ -47,7 +49,7 @@ function getStoreStatus(): StoreStatus {
       return {
         isOpen: false,
         message: 'Магазин закрыт',
-        nextChange: 'Откроемся в понедельник в 08:00',
+        nextChange: `Откроемся в понедельник в ${String(weekdayStart).padStart(2, '0')}:00`,
       };
     }
     
@@ -58,8 +60,9 @@ function getStoreStatus(): StoreStatus {
     };
   }
 
-  // Пн-Сб: 08:00-16:00
+  // Пн-Сб
   const { start, end } = CONTACT_INFO.workDays.weekdays;
+  const sundayStart = CONTACT_INFO.workDays.sunday.start;
 
   if (currentTime < start) {
     return {
@@ -74,7 +77,7 @@ function getStoreStatus(): StoreStatus {
       return {
         isOpen: false,
         message: 'Магазин закрыт',
-        nextChange: 'Откроемся в воскресенье в 08:00',
+        nextChange: `Откроемся в воскресенье в ${String(sundayStart).padStart(2, '0')}:00`,
       };
     }
     return {
@@ -93,6 +96,7 @@ function getStoreStatus(): StoreStatus {
 
 export default function StoreInfo({ className = '' }: StoreInfoProps) {
   const [storeStatus, setStoreStatus] = useState<StoreStatus>(() => getStoreStatus());
+  const hours = formatStoreHoursLines();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -228,11 +232,11 @@ export default function StoreInfo({ className = '' }: StoreInfoProps) {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Пн-Сб:</span>
-                <span className="font-medium text-gray-900">08:00-16:00</span>
+                <span className="font-medium text-gray-900">{hours.monSat.replace('Пн-Сб: ', '')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Вск:</span>
-                <span className="font-medium text-gray-900">08:00-14:00</span>
+                <span className="font-medium text-gray-900">{hours.sun.replace('Вск: ', '')}</span>
               </div>
             </div>
           </div>

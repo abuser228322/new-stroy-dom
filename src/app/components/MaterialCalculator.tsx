@@ -442,36 +442,18 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         const thickness = v[thicknessKey] || 10;
         const layers = v[layersKey] || 1;
         
-        // DEBUG - удалить после отладки
-        console.log('=== CALC DEBUG ===');
-        console.log('formulaType:', formulaType);
-        console.log('Keys:', { areaKey, thicknessKey, layersKey });
-        console.log('Raw v object:', JSON.stringify(v));
-        console.log('v[areaKey]:', v[areaKey], 'type:', typeof v[areaKey]);
-        console.log('v[thicknessKey]:', v[thicknessKey], 'type:', typeof v[thicknessKey]);
-        console.log('Computed: area=', area, 'thickness=', thickness, 'layers=', layers);
-        console.log('Product:', {
-          name: product.name,
-          consumption: product.consumption,
-          consumptionUnit: product.consumptionUnit,
-          bagWeight: product.bagWeight
-        });
-        
         // Определяем тип расхода по единице измерения
         const consumptionUnit = product.consumptionUnit || '';
         
         if (consumptionUnit.includes('/см') || consumptionUnit.includes('при 10мм') || consumptionUnit.includes('/м²/см') || consumptionUnit.includes('кг/м²/см')) {
           // Расход при толщине 10мм (1см) - умножаем на thickness/10
           totalWeight = area * product.consumption * (thickness / 10) * layers;
-          console.log('Formula /см: area*consumption*(thickness/10)*layers =', area, '*', product.consumption, '*', (thickness/10), '*', layers, '=', totalWeight);
         } else if (consumptionUnit.includes('/мм') || consumptionUnit.includes('при 1мм') || consumptionUnit.includes('/м²/мм') || consumptionUnit.includes('кг/м²/мм')) {
           // Расход при толщине 1мм - умножаем на thickness
           totalWeight = area * product.consumption * thickness * layers;
-          console.log('Formula /мм: area*consumption*thickness*layers =', area, '*', product.consumption, '*', thickness, '*', layers, '=', totalWeight);
         } else {
           // Простой расход на м² (краска, шпаклёвка, грунтовка, плиточный клей)
           totalWeight = area * product.consumption * layers;
-          console.log('Formula simple: area*consumption*layers =', area, '*', product.consumption, '*', layers, '=', totalWeight);
         }
         
         // Определяем единицу измерения в зависимости от типа товара
@@ -485,35 +467,28 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         // ВАЖНО: проверяем г/м² но НЕ кг/м² (иначе 'кг/м²' попадёт сюда!)
         const isGrams = consumptionUnit.includes('г/м²') && !consumptionUnit.includes('кг/м²');
         
-        console.log('Unit detection:', {isLiquidLiters, isLiquidKg, isGrams, consumptionUnit});
-        
         if (isLiquidLiters) {
           // Грунтовка глубокого проникновения - жидкость в литрах
           amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `канистр (${product.bagWeight}л)` : 'л';
           details = `Общий расход: ${totalWeight.toFixed(1)} л`;
-          console.log('BRANCH: isLiquidLiters');
         } else if (isLiquidKg) {
           // Бетоноконтакт - густая смесь в кг, но в вёдрах
           amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalWeight.toFixed(1)} кг`;
-          console.log('BRANCH: isLiquidKg');
         } else if (isGrams) {
           // Краска в граммах -> переводим в кг
           const totalKg = totalWeight / 1000;
           amount = product.bagWeight ? Math.ceil(totalKg / product.bagWeight) : Math.ceil(totalKg);
           unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalKg.toFixed(1)} кг`;
-          console.log('BRANCH: isGrams, totalKg=', totalKg);
         } else {
           // Сухие смеси в кг - мешки!
           amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalWeight.toFixed(1)} кг`;
-          console.log('BRANCH: else (dry mix)');
         }
-        console.log('FINAL RESULT:', {amount, unit, totalWeight, details});
         break;
       }
       
@@ -588,7 +563,7 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
       }
     }
 
-    const estimatedPrice = product.price ? amount * product.price : undefined;
+    const estimatedPrice = product.price != null ? amount * product.price : undefined;
     
     // Рекомендации из шаблона
     let recommendations: string[] = [];
@@ -630,6 +605,9 @@ interface ApiProduct {
   consumptionUnit: string;
   bagWeight: number | null;
   price: number | undefined;
+  pricesBySize?: Record<string, number> | null;
+  sizeText?: string | null;
+  unit?: string | null;
   tooltip: string | null;
   // Данные для корректной ссылки в корзину
   categorySlug: string;
@@ -681,6 +659,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
   const [selectedCategory, setSelectedCategory] = useState<MaterialCategory | string>('plaster');
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [values, setValues] = useState<Record<string, number>>({});
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
   const [isExpanded, setIsExpanded] = useState(alwaysExpanded);
   const [addedToCart, setAddedToCart] = useState(false);
   
@@ -723,7 +702,6 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
     // Если используем БД и данные загружены
     if (useDatabase && dbCategories.length > 0) {
       const dbCat = dbCategories.find(c => c.slug === selectedCategory);
-      console.log('=== DB MODE ===', {useDatabase, dbCategoriesLength: dbCategories.length, selectedCategory, foundDbCat: !!dbCat});
       if (dbCat) {
         // Конвертируем данные API в формат MaterialConfig
         const convertedConfig: MaterialConfig = {
@@ -739,6 +717,9 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
             consumptionUnit: p.consumptionUnit,
             bagWeight: p.bagWeight || undefined,
             price: p.price,
+            pricesBySize: (p.pricesBySize as Record<string, number> | null) ?? null,
+            sizeText: p.sizeText || null,
+            unit: p.unit || null,
             tooltip: p.tooltip || undefined,
             // Данные для корзины
             categorySlug: p.categorySlug,
@@ -768,7 +749,6 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
     }
     
     // Фолбэк на локальные данные
-    console.log('=== USING LOCAL CONFIG ===', selectedCategory);
     return {
       config: MATERIALS_CONFIG[selectedCategory as MaterialCategory] || MATERIALS_CONFIG.plaster,
       categories: Object.keys(MATERIALS_CONFIG) as string[],
@@ -781,6 +761,33 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
     return config.products.find(p => p.id === selectedProductId) || config.products[0];
   }, [config, selectedProductId]);
 
+  // Варианты (объём/цвет/размер) через pricesBySize
+  const productSizes = useMemo(() => {
+    const pricesBySize = (selectedProduct as any)?.pricesBySize as Record<string, number> | null | undefined;
+    if (!pricesBySize) return [] as Array<{ size: string; price: number }>;
+    return Object.entries(pricesBySize).map(([size, price]) => ({ size, price }));
+  }, [selectedProduct]);
+
+  useEffect(() => {
+    if (productSizes.length > 0) {
+      setSelectedSize(productSizes[0].size);
+    } else {
+      setSelectedSize(undefined);
+    }
+    setAddedToCart(false);
+  }, [selectedProductId, productSizes.length]);
+
+  const currentPrice = useMemo(() => {
+    if (selectedProduct?.price != null) return selectedProduct.price;
+    const pricesBySize = (selectedProduct as any)?.pricesBySize as Record<string, number> | null | undefined;
+    if (pricesBySize && selectedSize) return pricesBySize[selectedSize];
+    return undefined;
+  }, [selectedProduct, selectedSize]);
+
+  const productForCalc = useMemo(() => {
+    return { ...selectedProduct, price: currentPrice } as typeof selectedProduct;
+  }, [selectedProduct, currentPrice]);
+
   // Текущие значения с дефолтами
   const currentValues = useMemo(() => {
     const defaults: Record<string, number> = {};
@@ -792,8 +799,8 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
 
   // Результат расчёта
   const result = useMemo(() => {
-    return config.calculate(currentValues, selectedProduct);
-  }, [config, currentValues, selectedProduct]);
+    return config.calculate(currentValues, productForCalc);
+  }, [config, currentValues, productForCalc]);
 
   const handleCategoryChange = (category: MaterialCategory) => {
     setSelectedCategory(category);
@@ -811,7 +818,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
   const handleAddToCart = () => {
     // Для БД режима используем urlId и реальные категории
     const urlIdForCart = selectedProduct.urlId || selectedProduct.productUrlId;
-    if (!urlIdForCart || !selectedProduct.price) return;
+    if (!urlIdForCart || currentPrice == null) return;
     
     // Используем productId (реальный ID товара из БД)
     const productIdForCart = selectedProduct.productId?.toString() 
@@ -827,7 +834,8 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
       title: selectedProduct.name,
       urlId: urlIdForCart,
       image: selectedProduct.image || null,
-      price: selectedProduct.price,
+      price: currentPrice,
+      size: selectedSize,
       quantity: result.amount,
       unit: result.unit,
       mainCategory: mainCat,
@@ -841,7 +849,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
   // Проверяем можно ли добавить в корзину
   const canAddToCart = !!(
     (selectedProduct.urlId || selectedProduct.productUrlId) && 
-    selectedProduct.price && 
+    currentPrice != null && 
     result.amount > 0
   );
 
@@ -883,7 +891,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           {/* Заголовок */}
           {alwaysExpanded ? (
-            <div className="p-4 sm:p-5 bg-gradient-to-r from-sky-500 to-cyan-500 text-white">
+            <div className="p-4 sm:p-5 bg-linear-to-r from-sky-500 to-cyan-500 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center">
                   <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -899,7 +907,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
           ) : (
             <button 
               onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full flex items-center justify-between p-4 sm:p-5 bg-gradient-to-r from-sky-500 to-cyan-500 text-white"
+              className="w-full flex items-center justify-between p-4 sm:p-5 bg-linear-to-r from-sky-500 to-cyan-500 text-white"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center">
@@ -970,6 +978,43 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
                 {selectedProduct.tooltip && (
                   <p className="mt-1 text-xs text-gray-500">💡 {selectedProduct.tooltip}</p>
                 )}
+
+                {/* Варианты (объём/цвет/размер) */}
+                {selectedProduct.price == null && productSizes.length > 0 && (
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {(selectedProduct as any).sizeText || 'Вариант'}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {productSizes.map(({ size, price }) => {
+                        const isActive = selectedSize === size;
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSize(size);
+                              setAddedToCart(false);
+                            }}
+                            className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                              isActive
+                                ? 'bg-sky-500 text-white border-sky-500'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-sky-500'
+                            }`}
+                            aria-pressed={isActive}
+                          >
+                            {size}
+                            {isActive && price != null ? (
+                              <span className="ml-2 text-xs opacity-90">
+                                {Number(price).toLocaleString('ru-RU')} ₽
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Поля ввода */}
@@ -1017,7 +1062,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
               </div>
 
               {/* Результат */}
-              <div className="bg-gradient-to-br from-sky-50 to-cyan-50 rounded-xl p-4 sm:p-5 border border-sky-100">
+              <div className="bg-linear-to-br from-sky-50 to-cyan-50 rounded-xl p-4 sm:p-5 border border-sky-100">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-3">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Вам понадобится:</p>

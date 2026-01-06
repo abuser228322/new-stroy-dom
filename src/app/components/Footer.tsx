@@ -3,14 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useCategories } from '@/hooks/useCategories';
+import { formatStoreHoursLines } from '../lib/storeHours';
 
 const CONTACT_INFO = {
   phone: '8-937-133-33-66',
   phoneClean: '+79371333366',
   address: 'г. Астрахань, ул. Рыбинская, 25Н',
   email: 'info@stroydom30.ru',
-  workHoursWeekday: 'Пн-Сб: 08:00-16:00',
-  workHoursSunday: 'Вск: 08:00-14:00',
 };
 
 const FOOTER_LINKS = {
@@ -84,6 +83,7 @@ function AccordionSection({ title, sectionKey, items, isOpen, onToggle }: Accord
 export default function Footer() {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const { categories } = useCategories();
+  const hours = formatStoreHoursLines();
 
   // Генерируем ссылки каталога из БД
   const catalogLinks = categories.slice(0, 8).map((cat) => ({
@@ -181,8 +181,8 @@ export default function Footer() {
                     </svg>
                   </div>
                   <div className="flex flex-col">
-                    <span>{CONTACT_INFO.workHoursWeekday}</span>
-                    <span className="text-sm text-gray-400">{CONTACT_INFO.workHoursSunday}</span>
+                    <span>{hours.monSat}</span>
+                    <span className="text-sm text-gray-400">{hours.sun}</span>
                   </div>
                 </div>
               </div>
@@ -309,8 +309,8 @@ export default function Footer() {
               >
                 {CONTACT_INFO.phone}
               </a>
-              <p className="text-sm text-gray-500">{CONTACT_INFO.workHoursWeekday}</p>
-              <p className="text-xs text-gray-500">{CONTACT_INFO.workHoursSunday}</p>
+              <p className="text-sm text-gray-500">{hours.monSat}</p>
+              <p className="text-xs text-gray-500">{hours.sun}</p>
             </div>
 
             {/* Ссылка на разработчика */}

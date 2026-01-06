@@ -389,3 +389,21 @@ body {
 .animate-slideIn {
   animation: slideIn 0.25s ease-out forwards;
 }
+
+/* ============================================
+   Кастомный курсор-молоток
+   ============================================ */
+
+/* Скрываем системный курсор на десктопе — используется HammerCursor компонент */
+@media (pointer: fine) {
+  html, body, * {
+    cursor: none !important;
+  }
+  
+  /* Для текстовых полей оставляем стандартный текстовый курсор */
+  input[type="text"], input[type="email"], input[type="tel"],
+  input[type="number"], input[type="password"], input[type="search"],
+  textarea, [contenteditable="true"] {
+    cursor: text !important;
+  }
+}
