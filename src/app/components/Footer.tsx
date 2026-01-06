@@ -15,6 +15,7 @@ const CONTACT_INFO = {
 
 const FOOTER_LINKS = {
   info: [
+    { name: 'Калькулятор материалов', href: '/calculator' },
     { name: 'Доставка и оплата', href: '/payment' },
     { name: 'Акции', href: '/sales' },
     { name: 'Контакты', href: '/contacts' },

@@ -59,8 +59,8 @@ export async function GET() {
             tooltip: i.tooltip,
           })),
           formula: formula ? {
-            type: formula.formulaType,
-            params: formula.formulaParams,
+            formulaType: formula.formulaType,
+            formulaParams: formula.formulaParams,
             resultUnit: formula.resultUnit,
             resultUnitTemplate: formula.resultUnitTemplate,
             recommendationsTemplate: formula.recommendationsTemplate,

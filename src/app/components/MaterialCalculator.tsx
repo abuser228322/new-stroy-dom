@@ -417,12 +417,14 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
     let details = '';
     let unit = resultUnit;
     
-    const areaKey = formulaParams.areaKey || 'area';
-    const thicknessKey = formulaParams.thicknessKey || 'thickness';
-    const layersKey = formulaParams.layersKey || 'layers';
-    const volumeKey = formulaParams.volumeKey || 'volume';
-    const lengthKey = formulaParams.lengthKey || 'length';
-    const quantityKey = formulaParams.quantityKey || 'width';
+    // Безопасная обработка параметров формулы
+    const params = formulaParams || {};
+    const areaKey = params.areaKey || 'area';
+    const thicknessKey = params.thicknessKey || 'thickness';
+    const layersKey = params.layersKey || 'layers';
+    const volumeKey = params.volumeKey || 'volume';
+    const lengthKey = params.lengthKey || 'length';
+    const quantityKey = params.quantityKey || 'width';
     
     switch (formulaType) {
       case 'area': {
@@ -431,11 +433,14 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         const thickness = v[thicknessKey] || 10;
         const layers = v[layersKey] || 1;
         
-        if (product.consumptionUnit.includes('/см') || product.consumptionUnit.includes('при 10мм')) {
+        if (product.consumptionUnit.includes('/см') || product.consumptionUnit.includes('при 10мм') || product.consumptionUnit.includes('/м²/см')) {
+          // Расход при толщине 10мм (1см) - умножаем на thickness/10
           totalWeight = area * product.consumption * (thickness / 10) * layers;
-        } else if (product.consumptionUnit.includes('/мм') || product.consumptionUnit.includes('при 1мм')) {
+        } else if (product.consumptionUnit.includes('/мм') || product.consumptionUnit.includes('при 1мм') || product.consumptionUnit.includes('/м²/мм')) {
+          // Расход при толщине 1мм - умножаем на thickness
           totalWeight = area * product.consumption * thickness * layers;
         } else {
+          // Простой расход на м² (краска, шпаклёвка, грунтовка, плиточный клей)
           totalWeight = area * product.consumption * layers;
         }
         
@@ -456,25 +461,39 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
       }
       
       case 'sheets': {
-        // Листовой материал
+        // Листовой материал (ГКЛ, утеплитель, профнастил)
+        // Для профнастила: width (ширина покрытия) / consumption (рабочая ширина листа)
+        // Для ГКЛ/утеплителя: area / consumption (площадь листа/упаковки)
         const area = v[areaKey] || 0;
-        const wastePercent = formulaParams.wastePercent || 10;
-        const sheetArea = product.consumption; // Площадь одного листа
-        const areaWithWaste = area * (1 + wastePercent / 100);
-        amount = Math.ceil(areaWithWaste / sheetArea);
-        unit = resultUnitTemplate || `листов (${sheetArea} м²/лист)`;
-        details = `Площадь с запасом ${wastePercent}%: ${areaWithWaste.toFixed(1)} м²`;
+        const length = v[lengthKey] || 0;
+        const width = v.width || 0;
+        const wastePercent = params.wastePercent || 10;
+        
+        // Если есть длина и ширина - это профнастил, считаем по ширине
+        if (length > 0 && width > 0 && product.consumptionUnit.includes('ширины')) {
+          // Профнастил: количество листов = ширина покрытия / рабочая ширина листа
+          const sheetsNeeded = Math.ceil(width / product.consumption);
+          amount = sheetsNeeded;
+          unit = resultUnitTemplate || 'листов';
+          details = `Покрытие ${length}м × ${width}м. Листов: ${sheetsNeeded} шт (рабочая ширина ${product.consumption}м)`;
+        } else {
+          // ГКЛ/утеплитель: количество = площадь / площадь листа/упаковки
+          const sheetArea = product.consumption;
+          const areaWithWaste = area * (1 + wastePercent / 100);
+          amount = Math.ceil(areaWithWaste / sheetArea);
+          unit = resultUnitTemplate || `упаковок`;
+          details = `Общий расход: ${areaWithWaste.toFixed(1)} м² (с запасом ${wastePercent}%)`;
+        }
         break;
       }
       
       case 'pieces': {
-        // Штучный расчет (для профнастила и т.п.)
-        const length = v[lengthKey] || 0;
-        const quantity = v[quantityKey] || 0;
-        amount = Math.ceil(quantity);
-        unit = resultUnitTemplate || 'шт';
-        const totalArea = length * quantity * product.consumption;
-        details = `Общая площадь покрытия: ${totalArea.toFixed(1)} м²`;
+        // Штучный расчет (клей для блоков)
+        const quantity = v[quantityKey] || v.blocks || 0;
+        totalWeight = quantity * product.consumption;
+        amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
+        unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : resultUnit;
+        details = `Общий расход: ${totalWeight.toFixed(1)} ${resultUnit}`;
         break;
       }
       

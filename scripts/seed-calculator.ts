@@ -11,8 +11,46 @@ import {
   calculatorFormulas 
 } from '../src/lib/db/schema';
 
+// Типы для данных калькулятора
+interface CalcInput {
+  key: string;
+  label: string;
+  unit: string;
+  defaultValue: number;
+  minValue: number;
+  maxValue?: number;
+  step: number;
+}
+
+interface CalcFormula {
+  type: string;
+  params: Record<string, any>;
+  resultUnit: string;
+  resultUnitTemplate?: string;
+}
+
+interface CalcProduct {
+  name: string;
+  consumption: number;
+  consumptionUnit: string;
+  bagWeight?: number;
+  price?: number;
+  productUrlId: string;
+  productId: number;
+  tooltip?: string;
+}
+
+interface CalcCategory {
+  slug: string;
+  name: string;
+  icon: string;
+  inputs: CalcInput[];
+  formula: CalcFormula;
+  products: CalcProduct[];
+}
+
 // Данные из реальных товаров магазина
-const CALCULATOR_DATA = [
+const CALCULATOR_DATA: CalcCategory[] = [
   {
     slug: 'plaster',
     name: 'Штукатурка',
@@ -177,7 +215,7 @@ const CALCULATOR_DATA = [
       { key: 'length', label: 'Длина покрытия', unit: 'м', defaultValue: 6, minValue: 0.5, step: 0.5 },
       { key: 'width', label: 'Ширина покрытия', unit: 'м', defaultValue: 5, minValue: 1, step: 0.5 },
     ],
-    formula: { type: 'sheets', params: { areaKey: 'area', sheetWidth: 1.15, wastePercent: 10 }, resultUnit: 'листов', resultUnitTemplate: 'листов (рабочая ширина 1.15м)' },
+    formula: { type: 'sheets', params: { lengthKey: 'length', wastePercent: 0 }, resultUnit: 'листов' },
     products: [
       { name: 'МП-20 Коричневый (1150х0.35мм)', consumption: 1.15, consumptionUnit: 'м ширины', productUrlId: 'mp-20-korichnevyy', productId: 1, tooltip: 'Под заказ по длине' },
       { name: 'МП-20 Красный (1150х0.35мм)', consumption: 1.15, consumptionUnit: 'м ширины', productUrlId: 'mp-20-krasnyy', productId: 2, tooltip: 'Под заказ по длине' },

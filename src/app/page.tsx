@@ -287,7 +287,7 @@ export default function Home() {
       </section>
 
       {/* Калькулятор материалов */}
-      <MaterialCalculator />
+      <MaterialCalculator useDatabase />
 
       {/* Информация о магазине */}
       <section className="container mx-auto px-4 py-12">

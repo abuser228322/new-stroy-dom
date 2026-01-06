@@ -272,16 +272,45 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      {/* Верхняя строка - навигация, контакты и статус (только на десктопе) */}
-      <div className="hidden md:block bg-slate-50 border-b border-gray-100">
+      {/* Верхняя строка - адреса с графиками и навигация (только на lg+) */}
+      <div className="hidden lg:block bg-slate-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center py-2 text-sm">
-            <div className="flex items-center gap-6">
-              <StoreStatus />
-              <span className="text-gray-500">г. Астрахань, ул. Рыбинская 25Н</span>
+            <div className="flex items-center gap-1">
+              {/* Адрес 1 с тултипом */}
+              <div className="group relative">
+                <span className="text-gray-600 cursor-help flex items-center gap-1.5 hover:text-sky-600 transition-colors">
+                  <svg className="w-3.5 h-3.5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  ул. Рыбинская 25Н
+                </span>
+                <div className="absolute left-0 top-full mt-1 bg-slate-800 text-white text-xs rounded-lg py-2 px-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-nowrap shadow-lg">
+                  <div className="font-medium mb-1">График работы:</div>
+                  <div>Пн-Сб: 08:00-16:00</div>
+                  <div>Вск: 08:00-14:00</div>
+                </div>
+              </div>
+              <span className="text-gray-300 mx-2">|</span>
+              {/* Адрес 2 с тултипом */}
+              <div className="group relative">
+                <span className="text-gray-600 cursor-help flex items-center gap-1.5 hover:text-sky-600 transition-colors">
+                  <svg className="w-3.5 h-3.5 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  пл. Свободы 14К
+                </span>
+                <div className="absolute left-0 top-full mt-1 bg-slate-800 text-white text-xs rounded-lg py-2 px-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 whitespace-nowrap shadow-lg">
+                  <div className="font-medium mb-1">График работы:</div>
+                  <div>Пн-Сб: 09:00-19:00</div>
+                  <div>Вск: 10:00-18:00</div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-6">
-              {/* Навигационные ссылки перенесены сюда */}
+            <div className="flex items-center gap-4">
+              {/* Навигационные ссылки */}
               <nav className="flex items-center gap-4">
                 {navLinks.map((link) => (
                   <Link
@@ -294,7 +323,7 @@ export default function Header() {
                 ))}
               </nav>
               <span className="text-gray-300">|</span>
-              <Link href="/policy" className="text-gray-500 hover:text-sky-600 transition-colors">
+              <Link href="/policy" className="text-gray-500 hover:text-sky-600 transition-colors text-xs">
                 Политика конфиденциальности
               </Link>
             </div>
