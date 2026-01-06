@@ -443,14 +443,18 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         const layers = v[layersKey] || 1;
         
         // DEBUG - удалить после отладки
-        console.log('CALC DEBUG:', {
-          formulaType,
-          areaKey, thicknessKey, layersKey,
-          v,
-          area, thickness, layers,
-          'product.consumption': product.consumption,
-          'product.consumptionUnit': product.consumptionUnit,
-          'product.bagWeight': product.bagWeight
+        console.log('=== CALC DEBUG ===');
+        console.log('formulaType:', formulaType);
+        console.log('Keys:', { areaKey, thicknessKey, layersKey });
+        console.log('Raw v object:', JSON.stringify(v));
+        console.log('v[areaKey]:', v[areaKey], 'type:', typeof v[areaKey]);
+        console.log('v[thicknessKey]:', v[thicknessKey], 'type:', typeof v[thicknessKey]);
+        console.log('Computed: area=', area, 'thickness=', thickness, 'layers=', layers);
+        console.log('Product:', {
+          name: product.name,
+          consumption: product.consumption,
+          consumptionUnit: product.consumptionUnit,
+          bagWeight: product.bagWeight
         });
         
         // Определяем тип расхода по единице измерения
@@ -459,12 +463,15 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         if (consumptionUnit.includes('/см') || consumptionUnit.includes('при 10мм') || consumptionUnit.includes('/м²/см') || consumptionUnit.includes('кг/м²/см')) {
           // Расход при толщине 10мм (1см) - умножаем на thickness/10
           totalWeight = area * product.consumption * (thickness / 10) * layers;
+          console.log('Formula /см: area*consumption*(thickness/10)*layers =', area, '*', product.consumption, '*', (thickness/10), '*', layers, '=', totalWeight);
         } else if (consumptionUnit.includes('/мм') || consumptionUnit.includes('при 1мм') || consumptionUnit.includes('/м²/мм') || consumptionUnit.includes('кг/м²/мм')) {
           // Расход при толщине 1мм - умножаем на thickness
           totalWeight = area * product.consumption * thickness * layers;
+          console.log('Formula /мм: area*consumption*thickness*layers =', area, '*', product.consumption, '*', thickness, '*', layers, '=', totalWeight);
         } else {
           // Простой расход на м² (краска, шпаклёвка, грунтовка, плиточный клей)
           totalWeight = area * product.consumption * layers;
+          console.log('Formula simple: area*consumption*layers =', area, '*', product.consumption, '*', layers, '=', totalWeight);
         }
         
         // Определяем единицу измерения в зависимости от типа товара
