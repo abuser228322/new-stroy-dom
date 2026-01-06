@@ -442,6 +442,17 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         const thickness = v[thicknessKey] || 10;
         const layers = v[layersKey] || 1;
         
+        // DEBUG - удалить после отладки
+        console.log('CALC DEBUG:', {
+          formulaType,
+          areaKey, thicknessKey, layersKey,
+          v,
+          area, thickness, layers,
+          'product.consumption': product.consumption,
+          'product.consumptionUnit': product.consumptionUnit,
+          'product.bagWeight': product.bagWeight
+        });
+        
         // Определяем тип расхода по единице измерения
         const consumptionUnit = product.consumptionUnit || '';
         
