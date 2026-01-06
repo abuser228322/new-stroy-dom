@@ -442,10 +442,13 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
         const thickness = v[thicknessKey] || 10;
         const layers = v[layersKey] || 1;
         
-        if (product.consumptionUnit.includes('/см') || product.consumptionUnit.includes('при 10мм') || product.consumptionUnit.includes('/м²/см')) {
+        // Определяем тип расхода по единице измерения
+        const consumptionUnit = product.consumptionUnit || '';
+        
+        if (consumptionUnit.includes('/см') || consumptionUnit.includes('при 10мм') || consumptionUnit.includes('/м²/см') || consumptionUnit.includes('кг/м²/см')) {
           // Расход при толщине 10мм (1см) - умножаем на thickness/10
           totalWeight = area * product.consumption * (thickness / 10) * layers;
-        } else if (product.consumptionUnit.includes('/мм') || product.consumptionUnit.includes('при 1мм') || product.consumptionUnit.includes('/м²/мм')) {
+        } else if (consumptionUnit.includes('/мм') || consumptionUnit.includes('при 1мм') || consumptionUnit.includes('/м²/мм') || consumptionUnit.includes('кг/м²/мм')) {
           // Расход при толщине 1мм - умножаем на thickness
           totalWeight = area * product.consumption * thickness * layers;
         } else {
@@ -453,23 +456,37 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
           totalWeight = area * product.consumption * layers;
         }
         
-        amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
-        
         // Определяем единицу измерения в зависимости от типа товара
-        if (product.consumptionUnit.includes('л/м²')) {
-          // Грунтовка, краска - жидкости в канистрах/вёдрах
+        const isLiquidLiters = consumptionUnit.includes('л/м²');
+        const isLiquidKg = consumptionUnit.includes('кг/м²') && !consumptionUnit.includes('/см') && !consumptionUnit.includes('/мм') && (
+          consumptionUnit.toLowerCase().includes('грунт') || 
+          consumptionUnit.toLowerCase().includes('бетонокон') ||
+          product.name?.toLowerCase().includes('бетонокон') ||
+          product.name?.toLowerCase().includes('грунт')
+        );
+        const isGrams = consumptionUnit.includes('г/м²');
+        
+        if (isLiquidLiters) {
+          // Грунтовка глубокого проникновения - жидкость в литрах
+          amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
           unit = product.bagWeight ? `канистр (${product.bagWeight}л)` : 'л';
           details = `Общий расход: ${totalWeight.toFixed(1)} л`;
-        } else if (product.consumptionUnit.includes('г/м²')) {
+        } else if (isLiquidKg) {
+          // Бетоноконтакт - густая смесь в кг, но в вёдрах
+          amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
+          unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
+          details = `Общий расход: ${totalWeight.toFixed(1)} кг`;
+        } else if (isGrams) {
           // Краска в граммах -> переводим в кг
           const totalKg = totalWeight / 1000;
           amount = product.bagWeight ? Math.ceil(totalKg / product.bagWeight) : Math.ceil(totalKg);
           unit = product.bagWeight ? `вёдер (${product.bagWeight}кг)` : 'кг';
           details = `Общий расход: ${totalKg.toFixed(1)} кг`;
         } else {
-          // Сухие смеси в кг
-          unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : resultUnit;
-          details = `Общий расход: ${totalWeight.toFixed(1)} ${resultUnit}`;
+          // Сухие смеси в кг - мешки!
+          amount = product.bagWeight ? Math.ceil(totalWeight / product.bagWeight) : Math.ceil(totalWeight);
+          unit = product.bagWeight ? `мешков (${product.bagWeight}кг)` : 'кг';
+          details = `Общий расход: ${totalWeight.toFixed(1)} кг`;
         }
         break;
       }
@@ -485,13 +502,12 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
       }
       
       case 'sheets': {
-        // Листовой материал (ГКЛ, утеплитель, профнастил)
-        // Для профнастила: width (ширина покрытия) / consumption (рабочая ширина листа)
-        // Для ГКЛ/утеплителя: area / consumption (площадь листа/упаковки)
+        // Листовой материал (ГКЛ, утеплитель, профнастил, изоляционные плёнки)
         const area = v[areaKey] || 0;
         const length = v[lengthKey] || 0;
         const width = v.width || 0;
-        const wastePercent = params.wastePercent || 10;
+        // Нахлёст/запас: берём из v.overlap (для плёнок) или из params.wastePercent или по умолчанию 10%
+        const wastePercent = v.overlap ?? params.wastePercent ?? 10;
         
         // Если есть длина и ширина - это профнастил, считаем по ширине
         if (length > 0 && width > 0 && product.consumptionUnit.includes('ширины')) {
@@ -500,12 +516,27 @@ function createCalculateFunction(formula: ApiFormula | null): MaterialConfig['ca
           amount = sheetsNeeded;
           unit = resultUnitTemplate || 'листов';
           details = `Покрытие ${length}м × ${width}м. Листов: ${sheetsNeeded} шт (рабочая ширина ${product.consumption}м)`;
+        } else if (product.consumptionUnit.includes('рулон') || product.consumptionUnit.includes('м²/рулон')) {
+          // Изоляционные плёнки: площадь / м² в рулоне с учётом нахлёста
+          const rollArea = product.consumption;
+          const areaWithOverlap = area * (1 + wastePercent / 100);
+          amount = Math.ceil(areaWithOverlap / rollArea);
+          unit = 'рулонов';
+          details = `Общий расход: ${areaWithOverlap.toFixed(1)} м² (с запасом ${wastePercent}%)`;
         } else {
           // ГКЛ/утеплитель: количество = площадь / площадь листа/упаковки
           const sheetArea = product.consumption;
           const areaWithWaste = area * (1 + wastePercent / 100);
           amount = Math.ceil(areaWithWaste / sheetArea);
-          unit = resultUnitTemplate || `упаковок`;
+          
+          // Определяем единицу измерения
+          if (product.consumptionUnit.includes('м²/лист') || product.consumptionUnit.includes('м² на лист')) {
+            unit = 'листов';
+          } else if (product.consumptionUnit.includes('м²/уп') || product.consumptionUnit.includes('м² в упаковке')) {
+            unit = 'упаковок';
+          } else {
+            unit = resultUnitTemplate || 'упаковок';
+          }
           details = `Общий расход: ${areaWithWaste.toFixed(1)} м² (с запасом ${wastePercent}%)`;
         }
         break;
@@ -586,13 +617,14 @@ interface ApiProduct {
 }
 
 interface ApiInput {
-  id: number;
+  id?: number;
   key: string;
   label: string;
   unit: string;
   defaultValue: number;
-  minValue: number;
-  maxValue: number | null;
+  // API возвращает min/max, а не minValue/maxValue
+  min: number | null;
+  max: number | null;
   step: number;
   tooltip: string | null;
 }
@@ -692,10 +724,10 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
             key: i.key,
             label: i.label,
             unit: i.unit,
-            defaultValue: i.defaultValue,
-            min: i.minValue,
-            max: i.maxValue || 10000,
-            step: i.step,
+            defaultValue: i.defaultValue ?? 10,
+            min: i.min ?? 1,
+            max: i.max ?? 500,
+            step: i.step ?? 1,
             tooltip: i.tooltip || undefined,
           })),
           calculate: createCalculateFunction(dbCat.formula),
