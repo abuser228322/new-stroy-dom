@@ -37,19 +37,20 @@ export const calculatorInputs = pgTable("calculator_inputs", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Продукты калькулятора (конкретные товары с расходом)
+// DEPRECATED: Продукты калькулятора - теперь используем products.calculatorCategorySlug
+// Таблица оставлена для обратной совместимости, но не используется
 export const calculatorProducts = pgTable("calculator_products", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").notNull().references(() => calculatorCategories.id, { onDelete: "cascade" }),
   productId: integer("product_id").references(() => products.id), // Связь с товаром в каталоге
   
-  name: varchar("name", { length: 255 }).notNull(), // Волма Слой 30кг
-  consumption: real("consumption").notNull(), // 8.5 (расход)
-  consumptionUnit: varchar("consumption_unit", { length: 100 }).notNull(), // кг/м² при 10мм
-  bagWeight: real("bag_weight"), // 30 (вес мешка)
-  price: numeric("price", { precision: 10, scale: 2 }), // Цена (можно брать из товара)
-  tooltip: text("tooltip"), // Подсказка с информацией о расходе
-  productUrlId: varchar("product_url_id", { length: 255 }), // URL товара для корзины
+  name: varchar("name", { length: 255 }).notNull(),
+  consumption: real("consumption").notNull(),
+  consumptionUnit: varchar("consumption_unit", { length: 100 }).notNull(),
+  bagWeight: real("bag_weight"),
+  price: numeric("price", { precision: 10, scale: 2 }),
+  tooltip: text("tooltip"),
+  productUrlId: varchar("product_url_id", { length: 255 }),
   
   sortOrder: integer("sort_order").default(0),
   isActive: boolean("is_active").default(true),
@@ -219,6 +220,12 @@ export const products = pgTable("products", {
   isWeight: boolean("is_weight").default(false),
   quantityStep: numeric("quantity_step", { precision: 10, scale: 2 }),
   minQuantity: numeric("min_quantity", { precision: 10, scale: 2 }),
+  
+  // Поля для калькулятора материалов
+  consumption: real("consumption"), // Расход (8.5 кг/м² при 10мм)
+  consumptionUnit: varchar("consumption_unit", { length: 100 }), // кг/м²/см, л/м², м²/уп
+  bagWeight: real("bag_weight"), // Вес мешка/объём упаковки
+  calculatorCategorySlug: varchar("calculator_category_slug", { length: 100 }), // plaster, putty, и т.д.
   
   // Мета
   sortOrder: integer("sort_order").default(0),

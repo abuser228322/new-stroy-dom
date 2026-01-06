@@ -1,28 +1,56 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { calculatorCategories, calculatorProducts, calculatorInputs, calculatorFormulas } from '@/lib/db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { products, categories, subcategories, calculatorCategories, calculatorInputs, calculatorFormulas } from '@/lib/db/schema';
+import { eq, asc, isNotNull, and } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    // Получаем все категории калькулятора с продуктами, полями и формулами
-    const categories = await db
+    // Получаем категории калькулятора
+    const calcCategories = await db
       .select()
       .from(calculatorCategories)
       .where(eq(calculatorCategories.isActive, true))
       .orderBy(asc(calculatorCategories.sortOrder));
 
-    // Для каждой категории получаем связанные данные
+    // Для каждой категории получаем товары из products с заполненным consumption
     const result = await Promise.all(
-      categories.map(async (category) => {
-        // Продукты категории
-        const products = await db
-          .select()
-          .from(calculatorProducts)
-          .where(eq(calculatorProducts.categoryId, category.id))
-          .orderBy(asc(calculatorProducts.sortOrder));
+      calcCategories.map(async (category) => {
+        // Получаем товары из основной таблицы products по calculatorCategorySlug
+        const categoryProducts = await db
+          .select({
+            id: products.id,
+            urlId: products.urlId,
+            title: products.title,
+            description: products.description,
+            image: products.image,
+            price: products.price,
+            pricesBySize: products.pricesBySize,
+            unit: products.unit,
+            brand: products.brand,
+            inStock: products.inStock,
+            consumption: products.consumption,
+            consumptionUnit: products.consumptionUnit,
+            bagWeight: products.bagWeight,
+            categoryId: products.categoryId,
+            subcategoryId: products.subcategoryId,
+            categorySlug: categories.slug,
+            categoryName: categories.name,
+            subcategorySlug: subcategories.slug,
+            subcategoryName: subcategories.name,
+          })
+          .from(products)
+          .innerJoin(categories, eq(products.categoryId, categories.id))
+          .innerJoin(subcategories, eq(products.subcategoryId, subcategories.id))
+          .where(
+            and(
+              eq(products.calculatorCategorySlug, category.slug),
+              isNotNull(products.consumption),
+              eq(products.isActive, true)
+            )
+          )
+          .orderBy(asc(products.sortOrder));
 
-        // Поля ввода
+        // Поля ввода для категории
         const inputs = await db
           .select()
           .from(calculatorInputs)
@@ -36,17 +64,36 @@ export async function GET() {
           .where(eq(calculatorFormulas.categoryId, category.id));
 
         return {
-          ...category,
-          products: products.map(p => ({
+          id: category.id,
+          slug: category.slug,
+          name: category.name,
+          description: category.description,
+          icon: category.icon,
+          isActive: category.isActive,
+          products: categoryProducts.map(p => ({
+            // Идентификация
             id: p.id.toString(),
-            catalogProductId: p.productId, // ID товара в каталоге для связи
-            name: p.name,
-            consumption: p.consumption,
-            consumptionUnit: p.consumptionUnit,
+            productId: p.id, // Реальный ID товара в БД
+            urlId: p.urlId,
+            
+            // Данные для калькулятора
+            name: p.title,
+            consumption: p.consumption || 0,
+            consumptionUnit: p.consumptionUnit || '',
             bagWeight: p.bagWeight,
             price: p.price ? parseFloat(p.price) : undefined,
-            tooltip: p.tooltip,
-            productUrlId: p.productUrlId,
+            tooltip: p.description?.substring(0, 100) || null,
+            
+            // Данные для корректной ссылки в корзину
+            categorySlug: p.categorySlug,
+            subcategorySlug: p.subcategorySlug,
+            categoryName: p.categoryName,
+            subcategoryName: p.subcategoryName,
+            
+            // Дополнительно
+            image: p.image,
+            brand: p.brand,
+            inStock: p.inStock,
           })),
           inputs: inputs.map(i => ({
             key: i.key,
@@ -69,7 +116,10 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json(result);
+    // Фильтруем категории у которых есть товары
+    const categoriesWithProducts = result.filter(cat => cat.products.length > 0);
+
+    return NextResponse.json(categoriesWithProducts);
   } catch (error) {
     console.error('Error fetching calculator data:', error);
     return NextResponse.json(

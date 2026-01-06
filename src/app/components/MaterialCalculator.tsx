@@ -18,14 +18,23 @@ type MaterialCategory =
 // Конкретные продукты с реальным расходом
 interface ProductOption {
   id: string;
-  catalogProductId?: number; // ID товара в каталоге для связи с корзиной
+  productId?: number;        // Реальный ID товара в БД
+  urlId?: string;            // URL ID товара
   name: string;
-  consumption: number;      // Расход на единицу
-  consumptionUnit: string;  // Единица расхода (кг/м² при 10мм, л/м² и т.д.)
-  bagWeight?: number;       // Вес мешка/объём упаковки
-  price?: number;           // Цена за упаковку
-  tooltip?: string;         // Подсказка
-  productUrlId?: string;    // URL товара в каталоге для добавления в корзину
+  consumption: number;       // Расход на единицу
+  consumptionUnit: string;   // Единица расхода (кг/м² при 10мм, л/м² и т.д.)
+  bagWeight?: number;        // Вес мешка/объём упаковки
+  price?: number;            // Цена за упаковку
+  tooltip?: string;          // Подсказка
+  // Данные для корзины (из реального товара)
+  categorySlug?: string;
+  subcategorySlug?: string;
+  categoryName?: string;
+  subcategoryName?: string;
+  image?: string | null;
+  // Устаревшее (для локальных данных)
+  productUrlId?: string;
+  catalogProductId?: number;
 }
 
 interface MaterialConfig {
@@ -541,15 +550,24 @@ interface MaterialCalculatorProps {
 
 // Интерфейсы для данных из API
 interface ApiProduct {
-  id: number;
-  catalogProductId: number | null; // ID товара в каталоге для связи
+  id: string;
+  productId: number; // Реальный ID товара в БД
+  urlId: string;
   name: string;
   consumption: number;
   consumptionUnit: string;
   bagWeight: number | null;
-  price: number;
+  price: number | undefined;
   tooltip: string | null;
-  productUrlId: string | null;
+  // Данные для корректной ссылки в корзину
+  categorySlug: string;
+  subcategorySlug: string;
+  categoryName: string;
+  subcategoryName: string;
+  // Дополнительно
+  image: string | null;
+  brand: string | null;
+  inStock: boolean;
 }
 
 interface ApiInput {
@@ -640,14 +658,20 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
           icon: dbCat.icon,
           products: dbCat.products.map(p => ({
             id: p.id.toString(),
-            catalogProductId: p.catalogProductId || undefined, // Реальный ID товара в каталоге
+            productId: p.productId, // Реальный ID товара в БД
+            urlId: p.urlId,
             name: p.name,
             consumption: p.consumption,
             consumptionUnit: p.consumptionUnit,
             bagWeight: p.bagWeight || undefined,
             price: p.price,
             tooltip: p.tooltip || undefined,
-            productUrlId: p.productUrlId || undefined,
+            // Данные для корзины
+            categorySlug: p.categorySlug,
+            subcategorySlug: p.subcategorySlug,
+            categoryName: p.categoryName,
+            subcategoryName: p.subcategoryName,
+            image: p.image,
           })),
           inputs: dbCat.inputs.map(i => ({
             key: i.key,
@@ -710,28 +734,41 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
 
   // Добавление в корзину
   const handleAddToCart = () => {
-    if (!selectedProduct.productUrlId || !selectedProduct.price) return;
+    // Для БД режима используем urlId и реальные категории
+    const urlIdForCart = selectedProduct.urlId || selectedProduct.productUrlId;
+    if (!urlIdForCart || !selectedProduct.price) return;
     
-    // Используем catalogProductId (реальный ID товара) если есть, иначе id записи калькулятора
-    const productIdForCart = selectedProduct.catalogProductId 
-      ? selectedProduct.catalogProductId.toString() 
-      : selectedProduct.id;
+    // Используем productId (реальный ID товара из БД)
+    const productIdForCart = selectedProduct.productId?.toString() 
+      || selectedProduct.catalogProductId?.toString() 
+      || selectedProduct.id;
+    
+    // Используем реальные категории товара если есть
+    const mainCat = selectedProduct.categorySlug || config.name;
+    const subCat = selectedProduct.subcategorySlug || config.name;
     
     addItem({
       productId: productIdForCart,
       title: selectedProduct.name,
-      urlId: selectedProduct.productUrlId,
-      image: null,
+      urlId: urlIdForCart,
+      image: selectedProduct.image || null,
       price: selectedProduct.price,
       quantity: result.amount,
       unit: result.unit,
-      mainCategory: config.name,
-      subCategory: config.name,
+      mainCategory: mainCat,
+      subCategory: subCat,
     });
     
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 3000);
   };
+
+  // Проверяем можно ли добавить в корзину
+  const canAddToCart = !!(
+    (selectedProduct.urlId || selectedProduct.productUrlId) && 
+    selectedProduct.price && 
+    result.amount > 0
+  );
 
   // Категории уже определены в useMemo выше
   // const categories = Object.keys(MATERIALS_CONFIG) as MaterialCategory[];
@@ -923,7 +960,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
                 </div>
                 
                 {/* Кнопка добавления в корзину */}
-                {selectedProduct.productUrlId && selectedProduct.price && (
+                {canAddToCart && (
                   <div className="pt-3 border-t border-sky-200/50 mb-3">
                     <button
                       onClick={handleAddToCart}
