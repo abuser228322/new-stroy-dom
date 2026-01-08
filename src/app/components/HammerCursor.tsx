@@ -78,8 +78,8 @@ export default function HammerCursor() {
       <img
         src="/hammer.png"
         alt=""
-        width={32}
-        height={32}
+        width={25}
+        height={25}
         className="select-none"
         style={{
           imageRendering: 'crisp-edges',

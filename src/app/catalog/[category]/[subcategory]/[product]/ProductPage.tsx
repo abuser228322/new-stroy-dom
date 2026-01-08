@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/app/context/CartContext';
@@ -21,16 +21,16 @@ export default function ProductPage({ product, category, subcategory, relatedPro
   const [quantity, setQuantity] = useState(product.minQuantity || 1);
   const [isAdded, setIsAdded] = useState(false);
 
-  // Получаем текущую цену
-  const getCurrentPrice = () => {
-    if (product.price) return product.price;
-    if (product.pricesBySize && selectedSize) {
+  // Получаем текущую цену - реактивно пересчитывается при изменении selectedSize
+  // Если есть pricesBySize - используем его, иначе берём базовую цену
+  const price = useMemo(() => {
+    if (product.pricesBySize && selectedSize && product.pricesBySize[selectedSize] != null) {
       return product.pricesBySize[selectedSize];
     }
+    if (product.price != null) return product.price;
     return null;
-  };
+  }, [product.price, product.pricesBySize, selectedSize]);
 
-  const price = getCurrentPrice();
   const totalPrice = price ? price * quantity : null;
 
   // Шаг изменения количества

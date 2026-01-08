@@ -778,15 +778,35 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
   }, [selectedProductId, productSizes.length]);
 
   const currentPrice = useMemo(() => {
-    if (selectedProduct?.price != null) return selectedProduct.price;
+    // Если есть варианты (pricesBySize) и выбран размер - используем цену варианта
     const pricesBySize = (selectedProduct as any)?.pricesBySize as Record<string, number> | null | undefined;
-    if (pricesBySize && selectedSize) return pricesBySize[selectedSize];
+    if (pricesBySize && selectedSize && pricesBySize[selectedSize] != null) {
+      return pricesBySize[selectedSize];
+    }
+    // Иначе используем основную цену
+    if (selectedProduct?.price != null) return selectedProduct.price;
     return undefined;
   }, [selectedProduct, selectedSize]);
 
+  // Определяем вес упаковки в зависимости от выбранного варианта
+  const currentBagWeight = useMemo(() => {
+    if (selectedSize) {
+      // Пытаемся извлечь вес/объём из названия варианта (например "3кг" -> 3, "14кг" -> 14, "7л" -> 7)
+      const match = selectedSize.match(/(\d+(?:\.\d+)?)\s*(кг|л|м²|мм)?/i);
+      if (match) {
+        return parseFloat(match[1]);
+      }
+    }
+    return selectedProduct?.bagWeight || undefined;
+  }, [selectedProduct, selectedSize]);
+
   const productForCalc = useMemo(() => {
-    return { ...selectedProduct, price: currentPrice } as typeof selectedProduct;
-  }, [selectedProduct, currentPrice]);
+    return { 
+      ...selectedProduct, 
+      price: currentPrice,
+      bagWeight: currentBagWeight,
+    } as typeof selectedProduct;
+  }, [selectedProduct, currentPrice, currentBagWeight]);
 
   // Текущие значения с дефолтами
   const currentValues = useMemo(() => {
@@ -979,8 +999,8 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
                   <p className="mt-1 text-xs text-gray-500">💡 {selectedProduct.tooltip}</p>
                 )}
 
-                {/* Варианты (объём/цвет/размер) */}
-                {selectedProduct.price == null && productSizes.length > 0 && (
+                {/* Варианты (объём/цвет/размер) - показываем если есть pricesBySize */}
+                {productSizes.length > 0 && (
                   <div className="mt-3">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {(selectedProduct as any).sizeText || 'Вариант'}
