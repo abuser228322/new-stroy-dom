@@ -381,3 +381,46 @@ export const heroSlides = pgTable("hero_slides", {
 
 export type HeroSlide = typeof heroSlides.$inferSelect;
 export type NewHeroSlide = typeof heroSlides.$inferInsert;
+
+// ==================== АКЦИИ ====================
+
+export const promotions = pgTable("promotions", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  discount: varchar("discount", { length: 50 }), // "-10%", "Бесплатно", "Низкие цены"
+  validUntil: varchar("valid_until", { length: 100 }), // "До конца месяца", "Постоянная акция"
+  image: text("image"),
+  icon: varchar("icon", { length: 50 }).default('percent'), // percent, truck, gift, calendar, tag
+  color: varchar("color", { length: 50 }).default('red'), // red, green, blue, orange, purple
+  link: varchar("link", { length: 255 }),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Promotion = typeof promotions.$inferSelect;
+export type NewPromotion = typeof promotions.$inferInsert;
+
+// ==================== БЛОГ ====================
+
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: varchar("title", { length: 255 }).notNull(),
+  excerpt: text("excerpt"), // Краткое описание для карточки
+  content: text("content").notNull(), // Полный текст статьи (markdown)
+  image: text("image"), // Главное изображение
+  category: varchar("category", { length: 100 }), // Категория: советы, новости, обзоры
+  tags: text("tags"), // JSON массив тегов
+  authorId: integer("author_id").references(() => users.id),
+  viewCount: integer("view_count").default(0),
+  isPublished: boolean("is_published").default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type NewBlogPost = typeof blogPosts.$inferInsert;

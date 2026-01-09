@@ -19,6 +19,7 @@ const FOOTER_LINKS = {
     { name: 'Калькулятор материалов', href: '/calculator' },
     { name: 'Доставка и оплата', href: '/payment' },
     { name: 'Акции', href: '/sales' },
+    { name: 'Блог', href: '/blog' },
     { name: 'Контакты', href: '/contacts' },
   ],
   legal: [

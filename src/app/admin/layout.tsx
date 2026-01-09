@@ -23,7 +23,7 @@ export default function AdminLayout({
                   Строй Дом - Админ
                 </Link>
               </div>
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
+              <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
                 <Link
                   href="/admin"
                   className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
@@ -47,6 +47,18 @@ export default function AdminLayout({
                   className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
                   Слайды
+                </Link>
+                <Link
+                  href="/admin/promotions"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Акции
+                </Link>
+                <Link
+                  href="/admin/blog"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Блог
                 </Link>
                 <Link
                   href="/admin/calculator"
