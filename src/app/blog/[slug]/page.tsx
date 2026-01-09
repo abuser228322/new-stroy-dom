@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { blogPosts, products, categories } from '@/lib/db/schema';
+import { blogPosts, products, categories, subcategories } from '@/lib/db/schema';
 import { eq, inArray } from 'drizzle-orm';
 import { FaCalendar, FaArrowLeft, FaTag, FaShoppingCart } from 'react-icons/fa';
 
@@ -33,7 +33,7 @@ async function getRelatedProducts(relatedProductIds: string | null) {
     const urlIds = JSON.parse(relatedProductIds) as string[];
     if (!Array.isArray(urlIds) || urlIds.length === 0) return [];
     
-    // Fetch products with category info
+    // Fetch products with category and subcategory info
     const relatedProducts = await db
       .select({
         id: products.id,
@@ -41,11 +41,14 @@ async function getRelatedProducts(relatedProductIds: string | null) {
         title: products.title,
         image: products.image,
         price: products.price,
+        pricesBySize: products.pricesBySize,
         unit: products.unit,
         categorySlug: categories.slug,
+        subcategorySlug: subcategories.slug,
       })
       .from(products)
       .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(subcategories, eq(products.subcategoryId, subcategories.id))
       .where(inArray(products.urlId, urlIds))
       .limit(6);
     
@@ -314,47 +317,67 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {relatedProducts.map((product) => (
-                  <Link
-                    key={product.id}
-                    href={`/catalog/${product.categorySlug || 'products'}/${product.urlId}`}
-                    className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
-                  >
-                    {/* Изображение */}
-                    <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
-                      {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    {/* Название */}
-                    <h4 className="font-medium text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-2 flex-grow">
-                      {product.title}
-                    </h4>
-                    {/* Цена */}
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-purple-600">
-                        {Number(product.price || 0).toLocaleString('ru-RU')} ₽
-                      </span>
-                      {product.unit && (
-                        <span className="text-sm text-gray-500">/ {product.unit}</span>
-                      )}
-                    </div>
-                    {/* Кнопка */}
-                    <button className="mt-3 w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
-                      Подробнее
-                    </button>
-                  </Link>
-                ))}
+                {relatedProducts.map((product) => {
+                  // Вычисляем цену и наличие вариантов
+                  const pricesBySize = product.pricesBySize as Record<string, number> | null;
+                  const hasVariants = pricesBySize && Object.keys(pricesBySize).length > 0;
+                  const minPrice = hasVariants 
+                    ? Math.min(...Object.values(pricesBySize)) 
+                    : Number(product.price || 0);
+                  
+                  // Формируем ссылку с подкатегорией
+                  const productUrl = product.subcategorySlug 
+                    ? `/catalog/${product.categorySlug}/${product.subcategorySlug}/${product.urlId}`
+                    : `/catalog/${product.categorySlug || 'products'}/${product.urlId}`;
+                  
+                  return (
+                    <Link
+                      key={product.id}
+                      href={productUrl}
+                      className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
+                    >
+                      {/* Изображение */}
+                      <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {/* Название */}
+                      <h4 className="font-medium text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-2 flex-grow">
+                        {product.title}
+                      </h4>
+                      {/* Цена */}
+                      <div className="mt-2 flex items-baseline gap-2">
+                        {hasVariants ? (
+                          <span className="text-lg font-bold text-purple-600">
+                            от {minPrice.toLocaleString('ru-RU')} ₽
+                          </span>
+                        ) : (
+                          <span className="text-lg font-bold text-purple-600">
+                            {minPrice.toLocaleString('ru-RU')} ₽
+                          </span>
+                        )}
+                        {product.unit && (
+                          <span className="text-sm text-gray-500">/ {product.unit}</span>
+                        )}
+                      </div>
+                      {/* Кнопка */}
+                      <button className="mt-3 w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                        {hasVariants ? 'Выбрать размер' : 'Подробнее'}
+                      </button>
+                    </Link>
+                  );
+                })}
               </div>
               {/* Ссылка на каталог */}
               <div className="mt-6 text-center">

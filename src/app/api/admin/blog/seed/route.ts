@@ -10,6 +10,7 @@ interface BlogPostData {
   category: string;
   tags: string;
   isPublished: boolean;
+  relatedProductIds: string[];
 }
 
 const blogPostsData: BlogPostData[] = [
@@ -20,6 +21,7 @@ const blogPostsData: BlogPostData[] = [
     category: 'советы',
     tags: 'профнастил, забор, ограждение',
     isPublished: true,
+    relatedProductIds: ['mp-20-korichnevyy', 's-8-morenyy-dub', 's-8-kamen', 'krovelnyy-samorez-korichnevyy', 'proftruba-60h60h2'],
     content: `# Как выбрать профнастил для забора
 
 Забор из профнастила — практичное и долговечное решение для частного дома в Астрахани. Материал не боится жаркого климата, устойчив к ветрам и прослужит десятилетия без особого ухода.
@@ -96,6 +98,7 @@ const blogPostsData: BlogPostData[] = [
     category: 'советы',
     tags: 'сухие смеси, штукатурка, шпатлёвка, ремонт',
     isPublished: true,
+    relatedProductIds: ['volma-start', 'volma-gips-aktiv', 'litoks-satenlux', 'ceresit-sm-11', 'peskobeton-profmix-m300'],
     content: `# Виды сухих смесей для ремонта
 
 При ремонте квартиры или дома в Астрахани не обойтись без сухих строительных смесей. Разберёмся, какие виды существуют и для чего они нужны.
@@ -179,6 +182,7 @@ const blogPostsData: BlogPostData[] = [
     category: 'советы',
     tags: 'гипсокартон, ГКЛ, потолки, перегородки',
     isPublished: true,
+    relatedProductIds: ['gipsokarton', 'gipsokarton-vlagostoykiy', 'profil-60h27', 'napravlyayuschiy-27h28', 'podves-pryamoy-dlya-gipsokartona'],
     content: `# Гипсокартон: виды и применение
 
 Гипсокартон — универсальный материал для создания перегородок, выравнивания стен и устройства подвесных потолков.
@@ -260,6 +264,7 @@ const blogPostsData: BlogPostData[] = [
     category: 'советы',
     tags: 'утепление, пенопласт, минвата, каменная вата, теплоизоляция',
     isPublished: true,
+    relatedProductIds: ['isover-teplyy-dom-50mm', 'isover-teplyy-dom-100mm', 'penopleks-50', 'penoplast', 'izospan-b-paroizolyatsiya'],
     content: `# Утеплители для дома: сравнение материалов
 
 Правильное утепление дома в астраханском климате помогает сохранить прохладу летом и тепло зимой, снижая расходы на кондиционирование и отопление.
@@ -376,6 +381,7 @@ const blogPostsData: BlogPostData[] = [
     category: 'советы',
     tags: 'крепёж, саморезы, дюбели, гвозди',
     isPublished: true,
+    relatedProductIds: ['samorez-po-derevu', 'samorez-po-metallu', 'dyubel-gvozd', 'dyubel-babochka', 'gvozdi-shifernye', 'gvozdi-tolevye'],
     content: `# Крепёж: виды и применение
 
 Правильный выбор крепежа — залог надёжной конструкции. Разберёмся, какие виды крепежа существуют и где их применять.
@@ -500,6 +506,7 @@ const blogPostsData: BlogPostData[] = [
     category: 'советы',
     tags: 'грунтовка, подготовка, ремонт, отделка',
     isPublished: true,
+    relatedProductIds: ['gruntovka-ceresit-ct17', 'betonokontakt-ceresit-ct19-15kg', 'gruntovka-optimist-glubokogo-proniknoveniya', 'gruntovka-knauf-tifengrund', 'gruntovka-lakra-interernaya'],
     content: `# Грунтовка: зачем нужна и как выбрать
 
 Грунтование — этап, который многие пропускают, считая необязательным. Однако правильная грунтовка экономит материалы и обеспечивает качественный результат.
@@ -634,6 +641,7 @@ export async function POST() {
         content: post.content,
         category: post.category,
         tags: post.tags,
+        relatedProductIds: JSON.stringify(post.relatedProductIds),
         isPublished: post.isPublished,
         publishedAt: new Date(),
       });
