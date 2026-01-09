@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { blogPosts } from '@/lib/db/schema';
-import { sql } from 'drizzle-orm';
 
 interface BlogPostData {
   slug: string;
@@ -582,7 +581,7 @@ const blogPostsData: BlogPostData[] = [
 export async function POST() {
   try {
     // Удаляем старые статьи
-    await db.execute(sql`DELETE FROM blog_posts`);
+    await db.delete(blogPosts);
     
     // Добавляем новые
     for (const post of blogPostsData) {
