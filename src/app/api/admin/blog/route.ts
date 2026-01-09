@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { slug, title, excerpt, content, image, category, tags, authorId, isPublished } = body;
+    const { slug, title, excerpt, content, image, category, tags, authorId, isPublished, relatedProductIds } = body;
 
     if (!slug || !title || !content) {
       return NextResponse.json(
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         image: image || null,
         category: category || null,
         tags: tags || null,
+        relatedProductIds: relatedProductIds || null,
         authorId: authorId || null,
         isPublished: isPublished ?? false,
         publishedAt: isPublished ? new Date() : null,

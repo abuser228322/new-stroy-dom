@@ -40,7 +40,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { slug, title, excerpt, content, image, category, tags, isPublished } = body;
+    const { slug, title, excerpt, content, image, category, tags, isPublished, relatedProductIds } = body;
 
     // Получаем текущую статью для проверки статуса публикации
     const [currentPost] = await db
@@ -58,6 +58,7 @@ export async function PUT(
         image,
         category,
         tags,
+        relatedProductIds,
         isPublished,
         // Устанавливаем дату публикации если статья впервые публикуется
         publishedAt: isPublished && !currentPost?.publishedAt ? new Date() : currentPost?.publishedAt,

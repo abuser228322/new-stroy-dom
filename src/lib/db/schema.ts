@@ -414,6 +414,7 @@ export const blogPosts = pgTable("blog_posts", {
   image: text("image"), // Главное изображение
   category: varchar("category", { length: 100 }), // Категория: советы, новости, обзоры
   tags: text("tags"), // JSON массив тегов
+  relatedProductIds: text("related_product_ids"), // JSON массив ID товаров
   authorId: integer("author_id").references(() => users.id),
   viewCount: integer("view_count").default(0),
   isPublished: boolean("is_published").default(false),

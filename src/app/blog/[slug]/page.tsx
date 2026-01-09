@@ -2,9 +2,9 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { blogPosts } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { FaCalendar, FaEye, FaArrowLeft, FaTag } from 'react-icons/fa';
+import { blogPosts, products, categories } from '@/lib/db/schema';
+import { eq, inArray } from 'drizzle-orm';
+import { FaCalendar, FaEye, FaArrowLeft, FaTag, FaShoppingCart } from 'react-icons/fa';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -29,6 +29,38 @@ async function getBlogPost(slug: string) {
   } catch (error) {
     console.error('Error fetching blog post:', error);
     return null;
+  }
+}
+
+// Получаем рекомендуемые товары по urlId из related_product_ids
+async function getRelatedProducts(relatedProductIds: string | null) {
+  if (!relatedProductIds) return [];
+  
+  try {
+    // Parse JSON array of product urlIds
+    const urlIds = JSON.parse(relatedProductIds) as string[];
+    if (!Array.isArray(urlIds) || urlIds.length === 0) return [];
+    
+    // Fetch products with category info
+    const relatedProducts = await db
+      .select({
+        id: products.id,
+        urlId: products.urlId,
+        title: products.title,
+        image: products.image,
+        price: products.price,
+        unit: products.unit,
+        categorySlug: categories.slug,
+      })
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(inArray(products.urlId, urlIds))
+      .limit(6);
+    
+    return relatedProducts;
+  } catch (error) {
+    console.error('Error fetching related products:', error);
+    return [];
   }
 }
 
@@ -93,6 +125,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   }
 
   const tags = post.tags ? post.tags.split(',').map(t => t.trim()) : [];
+  const relatedProducts = await getRelatedProducts(post.relatedProductIds);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,6 +186,78 @@ export default async function BlogPostPage({ params }: PageProps) {
             {renderMarkdown(post.content)}
           </div>
         </div>
+
+        {/* Рекомендуемые товары */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-10">
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <FaShoppingCart className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Рекомендуемые товары</h3>
+                  <p className="text-sm text-gray-500">Всё необходимое для реализации проекта</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {relatedProducts.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/catalog/${product.categorySlug || 'products'}/${product.urlId}`}
+                    className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
+                  >
+                    {/* Изображение */}
+                    <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    {/* Название */}
+                    <h4 className="font-medium text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-2 flex-grow">
+                      {product.title}
+                    </h4>
+                    {/* Цена */}
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <span className="text-lg font-bold text-purple-600">
+                        {Number(product.price || 0).toLocaleString('ru-RU')} ₽
+                      </span>
+                      {product.unit && (
+                        <span className="text-sm text-gray-500">/ {product.unit}</span>
+                      )}
+                    </div>
+                    {/* Кнопка */}
+                    <button className="mt-3 w-full bg-purple-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                      Подробнее
+                    </button>
+                  </Link>
+                ))}
+              </div>
+              {/* Ссылка на каталог */}
+              <div className="mt-6 text-center">
+                <Link
+                  href="/catalog"
+                  className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Смотреть весь каталог
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Теги */}
         {tags.length > 0 && (

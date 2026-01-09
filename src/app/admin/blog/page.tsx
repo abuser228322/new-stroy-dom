@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaExternalLinkAlt, FaShoppingCart } from 'react-icons/fa';
 
 interface BlogPost {
   id: number;
@@ -12,10 +12,18 @@ interface BlogPost {
   image: string | null;
   category: string | null;
   tags: string | null;
+  relatedProductIds: string | null;
   viewCount: number;
   isPublished: boolean;
   publishedAt: string | null;
   createdAt: string;
+}
+
+interface Product {
+  id: number | string;
+  urlId: string;
+  title: string;
+  price: number | null;
 }
 
 const CATEGORY_OPTIONS = [
@@ -44,9 +52,12 @@ const transliterate = (text: string): string => {
 
 export default function BlogAdminPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [productSearch, setProductSearch] = useState('');
   const [formData, setFormData] = useState({
     slug: '',
     title: '',
@@ -60,6 +71,7 @@ export default function BlogAdminPage() {
 
   useEffect(() => {
     fetchPosts();
+    fetchProducts();
   }, []);
 
   const fetchPosts = async () => {
@@ -71,6 +83,17 @@ export default function BlogAdminPage() {
       console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('/api/products?limit=500');
+      const data = await res.json();
+      // API возвращает { products: [...], pagination: {...} }
+      setProducts(data.products || data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
   };
 
@@ -87,6 +110,13 @@ export default function BlogAdminPage() {
         tags: post.tags || '',
         isPublished: post.isPublished,
       });
+      // Загружаем связанные товары
+      try {
+        const ids = post.relatedProductIds ? JSON.parse(post.relatedProductIds) : [];
+        setSelectedProducts(ids);
+      } catch {
+        setSelectedProducts([]);
+      }
     } else {
       setEditingPost(null);
       setFormData({
@@ -99,7 +129,9 @@ export default function BlogAdminPage() {
         tags: '',
         isPublished: false,
       });
+      setSelectedProducts([]);
     }
+    setProductSearch('');
     setIsModalOpen(true);
   };
 
@@ -129,7 +161,10 @@ export default function BlogAdminPage() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          relatedProductIds: JSON.stringify(selectedProducts),
+        }),
       });
 
       if (res.ok) {
@@ -140,6 +175,19 @@ export default function BlogAdminPage() {
       console.error('Error saving post:', error);
     }
   };
+
+  const toggleProductSelection = (slug: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(slug)
+        ? prev.filter(s => s !== slug)
+        : [...prev, slug]
+    );
+  };
+
+  const filteredProducts = products.filter(p => 
+    p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
+    p.urlId.toLowerCase().includes(productSearch.toLowerCase())
+  ).slice(0, 20);
 
   const handleDelete = async (id: number) => {
     if (!confirm('Удалить эту статью?')) return;
@@ -394,6 +442,78 @@ export default function BlogAdminPage() {
                   className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
                   placeholder="профнастил, забор, строительство"
                 />
+              </div>
+
+              {/* Связанные товары */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FaShoppingCart className="inline mr-2" />
+                  Рекомендуемые товары
+                </label>
+                
+                {/* Выбранные товары */}
+                {selectedProducts.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {selectedProducts.map(urlId => {
+                      const product = products.find(p => p.urlId === urlId);
+                      return (
+                        <span
+                          key={urlId}
+                          className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-sm px-3 py-1 rounded-full"
+                        >
+                          {product?.title || urlId}
+                          <button
+                            type="button"
+                            onClick={() => toggleProductSelection(urlId)}
+                            className="hover:text-purple-900"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Поиск товаров */}
+                <input
+                  type="text"
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none mb-2"
+                  placeholder="Поиск товаров..."
+                />
+
+                {/* Список товаров для выбора */}
+                {productSearch && (
+                  <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-xl divide-y">
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map(product => (
+                        <div
+                          key={product.id}
+                          onClick={() => toggleProductSelection(product.urlId)}
+                          className={`px-3 py-2 cursor-pointer transition-colors ${
+                            selectedProducts.includes(product.urlId)
+                              ? 'bg-purple-50 text-purple-700'
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">{product.title}</span>
+                            {product.price && (
+                              <span className="text-xs text-gray-500">{product.price} ₽</span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">Товары не найдены</div>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Выберите товары, которые будут показаны в конце статьи
+                </p>
               </div>
 
               {/* Статус публикации */}
