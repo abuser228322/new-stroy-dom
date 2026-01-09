@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     description: 'Полный каталог строительных и отделочных материалов в Астрахани',
     url: 'https://stroydom30.ru/catalog',
   },
+  alternates: {
+    canonical: 'https://stroydom30.ru/catalog',
+  },
 };
 
 // Иконки и цвета для категорий - строительная тематика

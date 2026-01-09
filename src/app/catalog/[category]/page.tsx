@@ -10,6 +10,7 @@ import {
   LucideIcon, PaintBucket, CircleDot, Disc,
 } from 'lucide-react';
 import { getCategoryBySlug, getAllCategories } from '@/lib/db/queries';
+import { ItemListSchema } from '../../components/SchemaOrg';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -36,6 +37,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       title: `${category.name} | Строй Дом`,
       description: `${category.name} по низким ценам в Астрахани`,
       url: `https://stroydom30.ru/catalog/${categorySlug}`,
+    },
+    alternates: {
+      canonical: `https://stroydom30.ru/catalog/${categorySlug}`,
     },
   };
 }
@@ -161,8 +165,23 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     notFound();
   }
 
+  // Подготавливаем данные для ItemListSchema
+  const itemListItems = category.subcategories.map((sub) => ({
+    name: sub.name,
+    url: `https://stroydom30.ru/catalog/${categorySlug}/${sub.slug}`,
+  }));
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* SEO Schema.org разметка */}
+      {category.subcategories.length > 0 && (
+        <ItemListSchema
+          items={itemListItems}
+          name={`${category.name} - подкатегории`}
+          url={`https://stroydom30.ru/catalog/${categorySlug}`}
+        />
+      )}
+
       {/* Хлебные крошки */}
       <nav className="bg-white border-b border-gray-100">
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { LocalBusinessSchema } from "../components/SchemaOrg";
 
 export const metadata: Metadata = {
   title: "Контакты | Строй Дом - Астрахань",
@@ -8,6 +9,9 @@ export const metadata: Metadata = {
     description: "Магазин строительных материалов в Астрахани. Широкий ассортимент, доставка, консультации специалистов.",
     type: "website",
   },
+  alternates: {
+    canonical: "https://stroydom30.ru/contacts",
+  },
 };
 
 export default function ContactsLayout({
@@ -15,5 +19,10 @@ export default function ContactsLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      <LocalBusinessSchema />
+      {children}
+    </>
+  );
 }

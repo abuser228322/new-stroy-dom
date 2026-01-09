@@ -8,6 +8,7 @@ import ContactForm from './components/ContactForm';
 import MaterialCalculator from './components/MaterialCalculator';
 import { formatStoreHoursInline, isStoreOpenNow, RYBINSKAYA_HOURS, SVOBODY_HOURS, formatStoreHoursLines } from './lib/storeHours';
 import StoreStatusBadge from './components/StoreStatusBadge';
+import { LocalBusinessSchema } from './components/SchemaOrg';
 
 export const metadata: Metadata = {
   title: 'Строй Дом - Магазин строительных материалов в Астрахани',
@@ -33,6 +34,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
+      {/* SEO Schema.org разметка */}
+      <LocalBusinessSchema />
+
       {/* Слайдер */}
       <HeroSlider />
 

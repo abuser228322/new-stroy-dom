@@ -8,6 +8,9 @@ import { FaCalendar, FaTag } from 'react-icons/fa';
 export const metadata: Metadata = {
   title: 'Блог | Строй Дом - Статьи о строительстве и ремонте',
   description: 'Полезные советы, новости и обзоры строительных материалов. Читайте статьи экспертов о ремонте и строительстве.',
+  alternates: {
+    canonical: 'https://stroydom30.ru/blog',
+  },
 };
 
 const CATEGORY_LABELS: Record<string, string> = {

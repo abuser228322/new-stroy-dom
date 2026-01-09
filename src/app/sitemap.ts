@@ -1,6 +1,9 @@
 import { MetadataRoute } from 'next';
 import { menuCategories } from './mock/menuCategories';
-import products from './mock/products';
+import products, { getCategorySlug, getSubcategorySlug } from './mock/products';
+import { db } from '@/lib/db';
+import { blogPosts } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 const BASE_URL = 'https://stroydom30.ru';
 
@@ -9,6 +12,7 @@ const staticPages = [
   { url: '', priority: 1.0, changefreq: 'daily' as const },
   { url: '/catalog', priority: 0.9, changefreq: 'daily' as const },
   { url: '/sales', priority: 0.8, changefreq: 'weekly' as const },
+  { url: '/blog', priority: 0.8, changefreq: 'weekly' as const },
   { url: '/contacts', priority: 0.7, changefreq: 'monthly' as const },
   { url: '/payment', priority: 0.6, changefreq: 'monthly' as const },
   { url: '/policy', priority: 0.3, changefreq: 'yearly' as const },
@@ -45,21 +49,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  // 4. Страницы товаров (опционально, если есть отдельные страницы товаров)
-  // Раскомментируйте, если у вас есть страницы /product/[urlId]
-  /*
-  const productUrls: MetadataRoute.Sitemap = products.map(product => ({
-    url: `${BASE_URL}/product/${product.urlId}`,
-    lastModified: currentDate,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
-  */
+  // 4. Страницы товаров
+  const productUrls: MetadataRoute.Sitemap = products.map(product => {
+    const categorySlug = getCategorySlug(product.mainCategory);
+    const subcategorySlug = getSubcategorySlug(product.subCategory);
+    
+    return {
+      url: `${BASE_URL}/catalog/${categorySlug}/${subcategorySlug}/${product.urlId}`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    };
+  });
+
+  // 5. Страницы блога
+  let blogUrls: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await db
+      .select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt })
+      .from(blogPosts)
+      .where(eq(blogPosts.isPublished, true));
+    
+    blogUrls = posts.map(post => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: post.updatedAt?.toISOString() || currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    }));
+  } catch (error) {
+    console.error('Error fetching blog posts for sitemap:', error);
+  }
 
   return [
     ...staticUrls,
     ...categoryUrls,
     ...subcategoryUrls,
-    // ...productUrls,
+    ...productUrls,
+    ...blogUrls,
   ];
 }

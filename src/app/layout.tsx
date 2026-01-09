@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import HammerCursor from "./components/HammerCursor";
+import { OrganizationSchema, WebSiteSchema } from "./components/SchemaOrg";
 
 // Viewport configuration для мобильных браузеров
 export const viewport: Viewport = {
@@ -74,6 +75,8 @@ export default function RootLayout({
         {/* Favicon ссылки управляются через metadata API */}
       </head>
       <body className="min-w-[360px] bg-[var(--bg-secondary)] text-[var(--text-primary)]">
+        <OrganizationSchema />
+        <WebSiteSchema />
         <AuthProvider>
           <CartProvider>
             <HammerCursor />

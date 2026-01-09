@@ -8,6 +8,9 @@ export const metadata: Metadata = {
     description: "Выгодные предложения на строительные материалы в Астрахани",
     type: "website",
   },
+  alternates: {
+    canonical: "https://stroydom30.ru/sales",
+  },
 };
 
 export default function SalesLayout({

@@ -8,6 +8,7 @@ import {
   getProducts,
 } from '@/lib/db/queries';
 import ProductCard from '../../../components/ProductCard';
+import { ItemListSchema } from '../../../components/SchemaOrg';
 
 interface SubcategoryPageProps {
   params: Promise<{
@@ -36,6 +37,9 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
       title: `${subcategory.name} | Строй Дом`,
       description: `${subcategory.name} по низким ценам в Астрахани`,
       url: `https://stroydom30.ru/catalog/${categorySlug}/${subcategorySlug}`,
+    },
+    alternates: {
+      canonical: `https://stroydom30.ru/catalog/${categorySlug}/${subcategorySlug}`,
     },
   };
 }
@@ -81,8 +85,25 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     subcategorySlug 
   });
 
+  // Подготавливаем данные для ItemListSchema
+  const itemListItems = products.map((product) => ({
+    name: product.title,
+    url: `https://stroydom30.ru/catalog/${categorySlug}/${subcategorySlug}/${product.urlId}`,
+    image: product.image ? `https://stroydom30.ru${product.image}` : undefined,
+    price: product.price || undefined,
+  }));
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* SEO Schema.org разметка */}
+      {products.length > 0 && (
+        <ItemListSchema
+          items={itemListItems}
+          name={`${subcategory.name} - ${category.name}`}
+          url={`https://stroydom30.ru/catalog/${categorySlug}/${subcategorySlug}`}
+        />
+      )}
+
       {/* Тёмный заголовок */}
       <section className="bg-gradient-to-r from-slate-900 to-slate-800">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">

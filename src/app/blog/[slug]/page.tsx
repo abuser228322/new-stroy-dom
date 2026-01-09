@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { blogPosts, products, categories, subcategories } from '@/lib/db/schema';
 import { eq, inArray } from 'drizzle-orm';
 import { FaCalendar, FaArrowLeft, FaTag, FaShoppingCart } from 'react-icons/fa';
+import { ArticleSchema } from '../../components/SchemaOrg';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -70,6 +71,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${post.title} | Блог Строй Дом`,
     description: post.excerpt || post.title,
+    openGraph: {
+      title: `${post.title} | Блог Строй Дом`,
+      description: post.excerpt || post.title,
+      type: 'article',
+      url: `https://stroydom30.ru/blog/${slug}`,
+      ...(post.image && { images: [{ url: post.image }] }),
+    },
+    alternates: {
+      canonical: `https://stroydom30.ru/blog/${slug}`,
+    },
   };
 }
 
@@ -251,6 +262,16 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* SEO Schema.org разметка */}
+      <ArticleSchema
+        title={post.title}
+        description={post.excerpt || post.title}
+        image={post.image || undefined}
+        datePublished={post.publishedAt?.toISOString() || post.createdAt.toISOString()}
+        dateModified={post.updatedAt?.toISOString()}
+        url={`https://stroydom30.ru/blog/${slug}`}
+      />
+
       {/* Навигация */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
