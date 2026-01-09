@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { blogPosts, products, categories } from '@/lib/db/schema';
 import { eq, inArray } from 'drizzle-orm';
-import { FaCalendar, FaEye, FaArrowLeft, FaTag, FaShoppingCart } from 'react-icons/fa';
+import { FaCalendar, FaArrowLeft, FaTag, FaShoppingCart } from 'react-icons/fa';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -16,14 +16,6 @@ async function getBlogPost(slug: string) {
       .select()
       .from(blogPosts)
       .where(eq(blogPosts.slug, slug));
-    
-    if (post && post.isPublished) {
-      // Увеличиваем счётчик просмотров
-      await db
-        .update(blogPosts)
-        .set({ viewCount: (post.viewCount || 0) + 1 })
-        .where(eq(blogPosts.id, post.id));
-    }
     
     return post;
   } catch (error) {
@@ -85,35 +77,162 @@ const CATEGORY_LABELS: Record<string, string> = {
   'инструкции': '📋 Инструкции',
 };
 
-// Простой рендеринг Markdown (базовый)
-function renderMarkdown(content: string) {
-  return content
-    .split('\n\n')
-    .map((paragraph, i) => {
-      // Заголовки
-      if (paragraph.startsWith('### ')) {
-        return <h3 key={i} className="text-xl font-bold mt-6 mb-3">{paragraph.slice(4)}</h3>;
-      }
-      if (paragraph.startsWith('## ')) {
-        return <h2 key={i} className="text-2xl font-bold mt-8 mb-4">{paragraph.slice(3)}</h2>;
-      }
-      if (paragraph.startsWith('# ')) {
-        return <h1 key={i} className="text-3xl font-bold mt-8 mb-4">{paragraph.slice(2)}</h1>;
-      }
-      // Списки
-      if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
-        const items = paragraph.split('\n').filter(line => line.startsWith('- ') || line.startsWith('* '));
-        return (
-          <ul key={i} className="list-disc list-inside space-y-2 my-4">
-            {items.map((item, j) => (
-              <li key={j}>{item.slice(2)}</li>
+// Форматирование inline элементов (жирный, курсив)
+function formatInlineText(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+
+  const regex = /\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1]) {
+      parts.push(<strong key={key++} className="font-semibold text-gray-900">{match[1]}</strong>);
+    } else if (match[2]) {
+      parts.push(<em key={key++} className="italic">{match[2]}</em>);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
+// Рендер таблицы
+function renderTable(lines: string[], key: number) {
+  const rows = lines
+    .map(line => line.split('|').map(cell => cell.trim()).filter(cell => cell && !cell.match(/^-+$/)))
+    .filter(row => row.length > 0 && !row.every(cell => cell.match(/^-+$/)));
+
+  if (rows.length === 0) return null;
+
+  const header = rows[0];
+  const body = rows.slice(1).filter(row => !row.every(cell => cell.match(/^-+$/)));
+
+  return (
+    <div key={key} className="my-6 overflow-x-auto">
+      <table className="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
+        <thead>
+          <tr className="bg-purple-50">
+            {header.map((cell, i) => (
+              <th key={i} className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b border-purple-100">
+                {formatInlineText(cell)}
+              </th>
             ))}
-          </ul>
-        );
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, i) => (
+            <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              {row.map((cell, j) => (
+                <td key={j} className="px-4 py-3 text-sm text-gray-700 border-b border-gray-100">
+                  {formatInlineText(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Улучшенный рендеринг Markdown
+function renderMarkdown(content: string) {
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+  let key = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    
+    if (line.trim() === '') { i++; continue; }
+
+    // Заголовки
+    if (line.startsWith('### ')) {
+      elements.push(<h3 key={key++} className="text-xl font-bold text-gray-900 mt-8 mb-4">{formatInlineText(line.slice(4))}</h3>);
+      i++; continue;
+    }
+    if (line.startsWith('## ')) {
+      elements.push(<h2 key={key++} className="text-2xl font-bold text-gray-900 mt-10 mb-4">{formatInlineText(line.slice(3))}</h2>);
+      i++; continue;
+    }
+    if (line.startsWith('# ')) {
+      elements.push(<h1 key={key++} className="text-3xl font-bold text-gray-900 mt-10 mb-4">{formatInlineText(line.slice(2))}</h1>);
+      i++; continue;
+    }
+
+    // Горизонтальная линия
+    if (line.trim() === '---' || line.trim() === '***') {
+      elements.push(<hr key={key++} className="my-8 border-gray-200" />);
+      i++; continue;
+    }
+
+    // Таблицы
+    if (line.includes('|') && lines[i + 1]?.includes('|') && lines[i + 1]?.includes('-')) {
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].includes('|')) {
+        tableLines.push(lines[i]);
+        i++;
       }
-      // Обычный параграф
-      return <p key={i} className="my-4 leading-relaxed">{paragraph}</p>;
-    });
+      elements.push(renderTable(tableLines, key++));
+      continue;
+    }
+
+    // Нумерованные списки
+    if (/^\d+\.\s/.test(line)) {
+      const listItems: string[] = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        listItems.push(lines[i].replace(/^\d+\.\s/, ''));
+        i++;
+      }
+      elements.push(
+        <ol key={key++} className="list-decimal list-inside space-y-2 my-4 text-gray-700">
+          {listItems.map((item, j) => <li key={j} className="leading-relaxed">{formatInlineText(item)}</li>)}
+        </ol>
+      );
+      continue;
+    }
+
+    // Маркированные списки
+    if (line.startsWith('- ') || line.startsWith('* ')) {
+      const listItems: string[] = [];
+      while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('* '))) {
+        listItems.push(lines[i].slice(2));
+        i++;
+      }
+      elements.push(
+        <ul key={key++} className="space-y-2 my-4 text-gray-700">
+          {listItems.map((item, j) => (
+            <li key={j} className="flex items-start gap-2 leading-relaxed">
+              <span className="text-purple-500 mt-1.5">•</span>
+              <span>{formatInlineText(item)}</span>
+            </li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    // Обычный параграф
+    let paragraph = line;
+    i++;
+    while (i < lines.length && lines[i].trim() !== '' && !lines[i].startsWith('#') && !lines[i].startsWith('-') && !lines[i].startsWith('*') && !/^\d+\.\s/.test(lines[i]) && !lines[i].includes('|')) {
+      paragraph += ' ' + lines[i];
+      i++;
+    }
+    elements.push(<p key={key++} className="my-4 text-gray-700 leading-relaxed">{formatInlineText(paragraph)}</p>);
+  }
+
+  return elements;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -162,22 +281,16 @@ export default async function BlogPostPage({ params }: PageProps) {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {post.title}
           </h1>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            {post.publishedAt && (
-              <span className="flex items-center gap-1">
-                <FaCalendar />
-                {new Date(post.publishedAt).toLocaleDateString('ru-RU', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <FaEye />
-              {post.viewCount} просмотров
-            </span>
-          </div>
+          {post.publishedAt && (
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <FaCalendar />
+              {new Date(post.publishedAt).toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </div>
+          )}
         </div>
 
         {/* Контент */}

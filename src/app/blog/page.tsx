@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { blogPosts } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { FaCalendar, FaEye, FaTag } from 'react-icons/fa';
+import { FaCalendar, FaTag } from 'react-icons/fa';
 
 export const metadata: Metadata = {
   title: 'Блог | Строй Дом - Статьи о строительстве и ремонте',
@@ -95,18 +95,12 @@ export default async function BlogPage() {
                   )}
 
                   {/* Мета */}
-                  <div className="flex items-center gap-4 text-xs text-gray-400">
-                    {post.publishedAt && (
-                      <span className="flex items-center gap-1">
-                        <FaCalendar />
-                        {new Date(post.publishedAt).toLocaleDateString('ru-RU')}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <FaEye />
-                      {post.viewCount}
-                    </span>
-                  </div>
+                  {post.publishedAt && (
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <FaCalendar />
+                      {new Date(post.publishedAt).toLocaleDateString('ru-RU')}
+                    </div>
+                  )}
                 </div>
               </Link>
             ))}

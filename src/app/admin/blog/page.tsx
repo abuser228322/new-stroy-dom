@@ -13,7 +13,6 @@ interface BlogPost {
   category: string | null;
   tags: string | null;
   relatedProductIds: string | null;
-  viewCount: number;
   isPublished: boolean;
   publishedAt: string | null;
   createdAt: string;
@@ -241,7 +240,6 @@ export default function BlogAdminPage() {
             <tr>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Статья</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Категория</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Просмотры</th>
               <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Статус</th>
               <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Действия</th>
             </tr>
@@ -259,9 +257,6 @@ export default function BlogAdminPage() {
                   <span className="text-sm text-gray-600">
                     {CATEGORY_OPTIONS.find(c => c.value === post.category)?.label || post.category}
                   </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="text-sm text-gray-600">{post.viewCount}</span>
                 </td>
                 <td className="px-4 py-3">
                   <button
