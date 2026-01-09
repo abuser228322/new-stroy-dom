@@ -7,7 +7,7 @@ interface Coupon {
   id: number;
   code: string;
   description: string | null;
-  discountType: 'percentage' | 'fixed';
+  discountType: 'percent' | 'fixed';
   discountValue: number;
   minOrderAmount: number | null;
   maxDiscountAmount: number | null;
@@ -137,7 +137,7 @@ export default function CouponsPage() {
   };
 
   const formatDiscount = (coupon: Coupon) => {
-    if (coupon.discountType === 'percentage') {
+    if (coupon.discountType === 'percent') {
       return `${coupon.discountValue}%`;
     }
     return `${coupon.discountValue} ₽`;
@@ -371,7 +371,7 @@ function CouponModal({
   const [formData, setFormData] = useState({
     code: coupon?.code || '',
     description: coupon?.description || '',
-    discountType: coupon?.discountType || 'percentage' as 'percentage' | 'fixed',
+    discountType: coupon?.discountType || 'percent' as 'percent' | 'fixed',
     discountValue: coupon?.discountValue || 0,
     minOrderAmount: coupon?.minOrderAmount || '',
     maxDiscountAmount: coupon?.maxDiscountAmount || '',
@@ -440,10 +440,10 @@ function CouponModal({
               <label className="block text-sm font-medium text-gray-700 mb-1">Тип скидки *</label>
               <select
                 value={formData.discountType}
-                onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value as 'percentage' | 'fixed' }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, discountType: e.target.value as 'percent' | 'fixed' }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               >
-                <option value="percentage">Процент (%)</option>
+                <option value="percent">Процент (%)</option>
                 <option value="fixed">Фиксированная (₽)</option>
               </select>
             </div>
@@ -455,7 +455,7 @@ function CouponModal({
                 onChange={(e) => setFormData(prev => ({ ...prev, discountValue: Number(e.target.value) }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 min="0"
-                max={formData.discountType === 'percentage' ? 100 : undefined}
+                max={formData.discountType === 'percent' ? 100 : undefined}
                 required
               />
             </div>

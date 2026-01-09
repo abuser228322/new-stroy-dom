@@ -91,7 +91,7 @@ export async function PUT(
     }
     
     const discountType = body.discountType || existingCoupon.discountType;
-    if (discountType === 'percentage' && body.discountValue > 100) {
+    if (discountType === 'percent' && body.discountValue > 100) {
       return NextResponse.json({ error: 'Скидка не может превышать 100%' }, { status: 400 });
     }
     

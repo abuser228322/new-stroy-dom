@@ -545,9 +545,21 @@ export default function CartPage() {
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-gray-100">
-                    <div className="flex justify-between text-lg font-bold text-gray-900 mb-4">
-                      <span>К оплате:</span>
-                      <span>{formatPrice(totalAmount)} ₽</span>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Сумма:</span>
+                        <span>{formatPrice(totalAmount)} ₽</span>
+                      </div>
+                      {appliedCoupon && discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Скидка ({appliedCoupon.code}):</span>
+                          <span>-{formatPrice(discountAmount)} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-100">
+                        <span>К оплате:</span>
+                        <span>{formatPrice(finalAmount)} ₽</span>
+                      </div>
                     </div>
 
                     <button

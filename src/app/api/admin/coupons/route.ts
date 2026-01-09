@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Код купона должен содержать минимум 3 символа' }, { status: 400 });
     }
     
-    if (!body.discountType || !['percentage', 'fixed'].includes(body.discountType)) {
+    if (!body.discountType || !['percent', 'fixed'].includes(body.discountType)) {
       return NextResponse.json({ error: 'Укажите тип скидки' }, { status: 400 });
     }
     
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Укажите значение скидки' }, { status: 400 });
     }
     
-    if (body.discountType === 'percentage' && body.discountValue > 100) {
+    if (body.discountType === 'percent' && body.discountValue > 100) {
       return NextResponse.json({ error: 'Скидка не может превышать 100%' }, { status: 400 });
     }
     

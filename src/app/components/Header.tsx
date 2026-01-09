@@ -32,8 +32,6 @@ function MobileMenu({
   categories: Category[];
 }) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const [isStoreOpen, setIsStoreOpen] = useState<boolean>(() => isStoreOpenNow());
-  const hoursLines = formatStoreHoursLines();
 
   // Блокируем скролл body когда меню открыто
   useEffect(() => {
@@ -46,13 +44,6 @@ function MobileMenu({
       document.body.style.overflow = '';
     };
   }, [isOpen]);
-
-  useEffect(() => {
-    const tick = () => setIsStoreOpen(isStoreOpenNow());
-    tick();
-    const interval = setInterval(tick, 60_000);
-    return () => clearInterval(interval);
-  }, []);
 
   if (!isOpen) return null;
 
@@ -202,9 +193,26 @@ function MobileMenu({
 
         {/* Нижняя панель */}
         <div className="border-t border-gray-100 p-4 bg-gray-50">
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-            <StoreOpenDot isOpen={isStoreOpen} />
-            {hoursLines.monSat}, {hoursLines.sun}
+          {/* График работы обоих магазинов */}
+          <div className="space-y-2 mb-3 text-xs">
+            <div className="flex items-start gap-2">
+              <div className="shrink-0 mt-0.5">
+                <StoreOpenDot isOpen={isStoreOpenNow(RYBINSKAYA_HOURS)} />
+              </div>
+              <div className="text-gray-600">
+                <p className="font-medium text-gray-700">Рыбинская, 25Н</p>
+                <p>Пн-Сб: 08:00-16:00, Вск: 08:00-14:00</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="shrink-0 mt-0.5">
+                <StoreOpenDot isOpen={isStoreOpenNow(SVOBODY_HOURS)} />
+              </div>
+              <div className="text-gray-600">
+                <p className="font-medium text-gray-700">пл. Свободы, 14К</p>
+                <p>Пн-Сб: 09:00-19:00, Вск: 10:00-18:00</p>
+              </div>
+            </div>
           </div>
           <a
             href="tel:+79371333366"
