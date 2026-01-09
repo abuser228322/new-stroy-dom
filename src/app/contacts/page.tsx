@@ -2,10 +2,8 @@
 
 import ContactForm from "../components/ContactForm";
 import { FaPhone, FaMapMarkerAlt, FaClock, FaEnvelope, FaTruck, FaBuilding } from "react-icons/fa";
-import { formatStoreHoursLines } from "../lib/storeHours";
 
 export default function ContactsPage() {
-  const hours = formatStoreHoursLines();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -39,27 +37,34 @@ export default function ContactsPage() {
                 </div>
               </div>
 
-              {/* Address */}
+              {/* Address 1 - Рыбинская */}
               <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <FaMapMarkerAlt className="text-primary text-xl" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Адрес магазина</h3>
+                  <h3 className="font-semibold text-gray-800 mb-1">Магазин №1</h3>
                   <p className="text-gray-700">г. Астрахань, ул. Рыбинская 25Н</p>
-                  <p className="text-sm text-gray-500 mt-1">Удобная парковка для клиентов</p>
+                  <p className="text-sm text-gray-500 mt-1">Рынок «Славянка»</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    <FaClock className="inline mr-1" />
+                    Пн-Сб: 08:00-16:00, Вск: 08:00-14:00
+                  </p>
                 </div>
               </div>
 
-              {/* Work Hours */}
+              {/* Address 2 - пл. Свободы */}
               <div className="flex items-start gap-4 p-4 bg-white rounded-lg shadow-sm border">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <FaClock className="text-primary text-xl" />
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <FaMapMarkerAlt className="text-orange-500 text-xl" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">Режим работы</h3>
-                  <p className="text-gray-700">{hours.monSat}</p>
-                  <p className="text-gray-700">{hours.sun}</p>
+                  <h3 className="font-semibold text-gray-800 mb-1">Магазин №2</h3>
+                  <p className="text-gray-700">г. Астрахань, пл. Свободы 14К</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    <FaClock className="inline mr-1" />
+                    Пн-Сб: 09:00-19:00, Вск: 10:00-18:00
+                  </p>
                 </div>
               </div>
 
@@ -106,18 +111,25 @@ export default function ContactsPage() {
           <h2 className="text-2xl font-bold mb-6 text-gray-800">Как нас найти</h2>
           <div className="rounded-lg overflow-hidden shadow-lg h-[400px]">
             <iframe
-              src="https://yandex.ru/map-widget/v1/?um=constructor%3A7b2e1e4e7a1c5f4c3d2b1a0f9e8d7c6b5a4&amp;source=constructor"
+              src="https://yandex.ru/map-widget/v1/?ll=48.0599%2C46.3533&z=12&l=map&pt=48.100638%2C46.364644%2Cpm2blm1~48.019147%2C46.341965%2Cpm2blm2"
               width="100%"
               height="100%"
               frameBorder="0"
               allowFullScreen
               style={{ display: 'block', border: 'none' }}
-              title="Карта проезда"
+              title="Карта проезда - Строй Дом Астрахань"
             />
           </div>
-          <p className="text-center text-gray-500 mt-4">
-            г. Астрахань, ул. Рыбинская 25Н
-          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4 text-gray-600">
+            <div className="flex items-center justify-center gap-2">
+              <FaMapMarkerAlt className="text-primary" />
+              <span><b>1</b> — ул. Рыбинская 25Н (рынок «Славянка»)</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <FaMapMarkerAlt className="text-primary" />
+              <span><b>2</b> — пл. Свободы 14К</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

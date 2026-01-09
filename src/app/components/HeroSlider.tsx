@@ -2,47 +2,76 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface Slide {
+  id: number;
+  title: string;
+  description: string | null;
+  buttonText: string | null;
+  buttonLink: string | null;
+  emoji: string;
+}
+
+// Цвета для слайдов (чередуются)
+const SLIDE_COLORS = [
+  "from-orange-500 to-orange-400",
+  "from-sky-600 to-sky-500",
+  "from-green-700 to-green-600",
+  "from-purple-600 to-purple-500",
+  "from-rose-500 to-rose-400",
+];
+
+// Фолбэк слайды, если в БД пусто
+const DEFAULT_SLIDES: Slide[] = [
+  {
+    id: 1,
+    title: "Строительные материалы",
+    description: "Профнастил, сухие смеси, гипсокартон, утеплители и крепёж по низким ценам",
+    buttonText: "Перейти в каталог",
+    buttonLink: "/catalog",
+    emoji: "🏗️"
+  },
+  {
+    id: 2,
+    title: "Бесплатная доставка",
+    description: "При заказе от 10 000 ₽ доставляем бесплатно по Астрахани и области",
+    buttonText: "Узнать подробнее",
+    buttonLink: "/contacts",
+    emoji: "🚚"
+  },
+  {
+    id: 3,
+    title: "Скидки до 15%",
+    description: "Специальные цены для строительных бригад и оптовых покупателей",
+    buttonText: "Смотреть акции",
+    buttonLink: "/sales",
+    emoji: "💰"
+  },
+];
+
 const HeroSlider = () => {
+  const [slides, setSlides] = useState<Slide[]>(DEFAULT_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  const slides = [
-    {
-      id: 1,
-      title: "Строительные материалы",
-      subtitle: "Профнастил, сухие смеси, гипсокартон, утеплители и крепёж по низким ценам",
-      button: {
-        text: "Перейти в каталог",
-        href: "/catalog",
-      },
-      bgColor: "from-orange-500 to-orange-400",
-      icon: "🏗️"
-    },
-    {
-      id: 2,
-      title: "Бесплатная доставка",
-      subtitle: "При заказе от 10 000 ₽ доставляем бесплатно по Астрахани и области",
-      button: {
-        text: "Узнать подробнее",
-        href: "/contacts",
-      },
-      bgColor: "from-sky-600 to-sky-500",
-      icon: "🚚"
-    },
-    {
-      id: 3,
-      title: "Скидки до 15%",
-      subtitle: "Специальные цены для строительных бригад и оптовых покупателей",
-      button: {
-        text: "Смотреть акции",
-        href: "/sales",
-      },
-      bgColor: "from-green-700 to-green-600",
-      icon: "💰"
-    },
-  ];
+  // Загрузка слайдов из API
+  useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const res = await fetch('/api/slides');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.length > 0) {
+            setSlides(data);
+          }
+        }
+      } catch (error) {
+        console.log('Using default slides');
+      }
+    };
+    fetchSlides();
+  }, []);
 
   const totalSlides = slides.length;
 
@@ -111,7 +140,7 @@ const HeroSlider = () => {
             {slides.map((slide, index) => (
               <div
                 key={slide.id}
-                className={`absolute inset-0 transition-all duration-500 ease-in-out bg-gradient-to-r ${slide.bgColor} ${
+                className={`absolute inset-0 transition-all duration-500 ease-in-out bg-gradient-to-r ${SLIDE_COLORS[index % SLIDE_COLORS.length]} ${
                   index === currentSlide
                     ? "opacity-100 translate-x-0"
                     : index < currentSlide
@@ -122,28 +151,30 @@ const HeroSlider = () => {
                 <div className="h-full flex items-center px-4 md:px-12">
                   <div className="max-w-xl text-white">
                     {/* Иконка - меньше на мобильных */}
-                    <div className="text-2xl md:text-5xl mb-2 md:mb-4">{slide.icon}</div>
+                    <div className="text-2xl md:text-5xl mb-2 md:mb-4">{slide.emoji}</div>
                     {/* Заголовок - компактнее на мобильных */}
                     <h2 className="text-lg md:text-4xl font-bold mb-1 md:mb-3">
                       {slide.title}
                     </h2>
                     {/* Подзаголовок - скрыт на очень маленьких экранах, обрезан на мобильных */}
                     <p className="text-xs md:text-lg text-white/90 mb-3 md:mb-6 line-clamp-1 md:line-clamp-2">
-                      {slide.subtitle}
+                      {slide.description}
                     </p>
                     {/* Кнопка - компактнее на мобильных */}
-                    <Link
-                      href={slide.button.href}
-                      className="inline-block bg-white text-gray-800 font-semibold px-4 md:px-6 py-2 md:py-3 text-sm md:text-base rounded-lg md:rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
-                    >
-                      {slide.button.text}
-                    </Link>
+                    {slide.buttonLink && slide.buttonText && (
+                      <Link
+                        href={slide.buttonLink}
+                        className="inline-block bg-white text-gray-800 font-semibold px-4 md:px-6 py-2 md:py-3 text-sm md:text-base rounded-lg md:rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
+                      >
+                        {slide.buttonText}
+                      </Link>
+                    )}
                   </div>
                 </div>
 
                 {/* Декоративные элементы - только на десктопе */}
                 <div className="absolute right-0 top-0 bottom-0 w-1/3 hidden lg:flex items-center justify-center opacity-20">
-                  <div className="text-[200px]">{slide.icon}</div>
+                  <div className="text-[200px]">{slide.emoji}</div>
                 </div>
               </div>
             ))}

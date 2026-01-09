@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { FaPhone, FaMapMarkerAlt, FaEnvelope, FaClock, FaDirections, FaWarehouse } from 'react-icons/fa';
-import { formatStoreHoursLines } from '../lib/storeHours';
 
 interface StoreInfoProps {
   className?: string;
@@ -14,13 +13,27 @@ interface StoreStatus {
   nextChange: string;
 }
 
+const STORES = [
+  {
+    name: 'Магазин №1',
+    address: 'г. Астрахань, ул. Рыбинская, 25Н',
+    note: 'Рынок «Славянка»',
+    hours: { weekdays: '08:00-16:00', sunday: '08:00-14:00' },
+  },
+  {
+    name: 'Магазин №2',
+    address: 'г. Астрахань, пл. Свободы, 14К',
+    note: '',
+    hours: { weekdays: '09:00-19:00', sunday: '10:00-18:00' },
+  },
+];
+
 const CONTACT_INFO = {
   phone: '8-937-133-33-66',
   phoneClean: '+79371333366',
-  address: 'г. Астрахань, ул. Рыбинская, 25Н',
   email: 'info@stroydom30.ru',
   workDays: {
-    weekdays: { start: 8, end: 16 }, // Пн-Сб 08:00-16:00
+    weekdays: { start: 8, end: 16 }, // Пн-Сб 08:00-16:00 (для статуса)
     sunday: { start: 8, end: 14 }, // Воскресенье 08:00-14:00
   },
 };
@@ -96,7 +109,6 @@ function getStoreStatus(): StoreStatus {
 
 export default function StoreInfo({ className = '' }: StoreInfoProps) {
   const [storeStatus, setStoreStatus] = useState<StoreStatus>(() => getStoreStatus());
-  const hours = formatStoreHoursLines();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -192,21 +204,25 @@ export default function StoreInfo({ className = '' }: StoreInfoProps) {
               </div>
             </a>
 
-            {/* Адрес */}
-            <a
-              href="https://yandex.ru/maps/-/CHe38Zwa"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-orange-50 transition-colors group"
-            >
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
-                <FaMapMarkerAlt className="text-orange-600 text-lg" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Адрес</p>
-                <p className="font-semibold text-gray-900">{CONTACT_INFO.address}</p>
-              </div>
-            </a>
+            {/* Адреса магазинов */}
+            <div className="p-4 bg-gray-50 rounded-xl space-y-4">
+              <p className="text-sm text-gray-500 font-medium">Наши магазины</p>
+              {STORES.map((store, idx) => (
+                <div key={idx} className="flex items-start gap-3 pb-3 border-b border-gray-200 last:border-0 last:pb-0">
+                  <div className={`w-10 h-10 ${idx === 0 ? 'bg-sky-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                    <FaMapMarkerAlt className={`${idx === 0 ? 'text-sky-600' : 'text-orange-600'} text-sm`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900">{store.address}</p>
+                    {store.note && <p className="text-sm text-gray-500">{store.note}</p>}
+                    <p className="text-sm text-gray-500 mt-1.5">
+                      <FaClock className="inline mr-1.5" />
+                      Пн-Сб: {store.hours.weekdays}, Вск: {store.hours.sunday}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
             {/* Email */}
             <a
@@ -221,24 +237,6 @@ export default function StoreInfo({ className = '' }: StoreInfoProps) {
                 <p className="font-semibold text-gray-900">{CONTACT_INFO.email}</p>
               </div>
             </a>
-          </div>
-
-          {/* График работы */}
-          <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <div className="flex items-center gap-2 mb-3">
-              <FaClock className="text-slate-500" />
-              <h4 className="font-semibold text-gray-900">График работы</h4>
-            </div>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Пн-Сб:</span>
-                <span className="font-medium text-gray-900">{hours.monSat.replace('Пн-Сб: ', '')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Вск:</span>
-                <span className="font-medium text-gray-900">{hours.sun.replace('Вск: ', '')}</span>
-              </div>
-            </div>
           </div>
 
           {/* Кнопки действий */}

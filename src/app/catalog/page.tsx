@@ -1,23 +1,26 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { 
-  FaLayerGroup, 
-  FaCube, 
-  FaSquare, 
-  FaTemperatureHigh, 
-  FaScrewdriver, 
-  FaPaintRoller, 
-  FaTh,
-  FaTools,
-  FaRuler,
-  FaTint,
-  FaPlug,
-  FaWrench,
-  FaHome,
-  FaIndustry,
-  FaRulerCombined,
-  FaBoxOpen
-} from 'react-icons/fa';
+  Layers,           // Профнастил - слои металла
+  BrickWall,        // Сухие смеси - кирпичная стена (штукатурка)
+  Square,           // Гипсокартон - лист/квадрат
+  Flame,            // Утеплители - тепло
+  Hammer,           // Крепёж - молоток и гвозди
+  PaintBucket,      // Краски - ведро краски
+  Paintbrush,       // Отделка - кисть
+  Wrench,           // Инструменты
+  RailSymbol,       // Профиля - рельс/направляющая
+  Droplets,         // Гидроизоляция - капли
+  Grid3x3,          // Арматура и сетка
+  TreeDeciduous,    // Древесные плиты - дерево
+  Cylinder,         // Профтрубы - труба
+  TreePine,         // Вагонка/брус - дерево хвойное
+  Ruler,            // Маяки - линейка/уровень
+  Shield,           // Изоляция - защита
+  Box,              // Дефолтная иконка
+  LucideIcon,
+  ChevronRight,
+} from 'lucide-react';
 import { getAllCategories } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
@@ -40,27 +43,36 @@ export const metadata: Metadata = {
   },
 };
 
-// Иконки и цвета для категорий
-const categoryStyles: Record<string, { icon: React.ElementType; gradient: string; bgColor: string }> = {
-  'suhie-smesi': { icon: FaCube, gradient: 'from-orange-400 to-orange-600', bgColor: 'bg-orange-50' },
-  'profili': { icon: FaRuler, gradient: 'from-slate-400 to-slate-600', bgColor: 'bg-slate-50' },
-  'profnastil': { icon: FaLayerGroup, gradient: 'from-sky-400 to-sky-600', bgColor: 'bg-sky-50' },
-  'gipsokarton': { icon: FaSquare, gradient: 'from-emerald-400 to-emerald-600', bgColor: 'bg-emerald-50' },
-  'utepliteli': { icon: FaTemperatureHigh, gradient: 'from-violet-400 to-violet-600', bgColor: 'bg-violet-50' },
-  'gidroizolyaciya': { icon: FaTint, gradient: 'from-blue-400 to-blue-600', bgColor: 'bg-blue-50' },
-  'krepezh': { icon: FaScrewdriver, gradient: 'from-rose-400 to-rose-600', bgColor: 'bg-rose-50' },
-  'instrumenty-i-rashodnye-materialy': { icon: FaTools, gradient: 'from-amber-400 to-amber-600', bgColor: 'bg-amber-50' },
-  'otdelka': { icon: FaTh, gradient: 'from-cyan-400 to-cyan-600', bgColor: 'bg-cyan-50' },
-  'lakokrasochnye-materialy': { icon: FaPaintRoller, gradient: 'from-pink-400 to-pink-600', bgColor: 'bg-pink-50' },
-  'plity': { icon: FaBoxOpen, gradient: 'from-indigo-400 to-indigo-600', bgColor: 'bg-indigo-50' },
-  'proftruby': { icon: FaIndustry, gradient: 'from-zinc-400 to-zinc-600', bgColor: 'bg-zinc-50' },
-  'armatura': { icon: FaWrench, gradient: 'from-red-400 to-red-600', bgColor: 'bg-red-50' },
-  'brus': { icon: FaHome, gradient: 'from-yellow-500 to-yellow-700', bgColor: 'bg-yellow-50' },
-  'mayaki': { icon: FaRulerCombined, gradient: 'from-teal-400 to-teal-600', bgColor: 'bg-teal-50' },
-  'izolyaciya': { icon: FaPlug, gradient: 'from-purple-400 to-purple-600', bgColor: 'bg-purple-50' },
+// Иконки и цвета для категорий - строительная тематика
+const categoryStyles: Record<string, { icon: LucideIcon; gradient: string; bgColor: string }> = {
+  // Основные категории
+  'profnastil': { icon: Layers, gradient: 'from-sky-400 to-sky-600', bgColor: 'bg-sky-50' },
+  'suhie-smesi': { icon: BrickWall, gradient: 'from-orange-400 to-orange-600', bgColor: 'bg-orange-50' },
+  'gipsokarton': { icon: Square, gradient: 'from-emerald-400 to-emerald-600', bgColor: 'bg-emerald-50' },
+  'utepliteli': { icon: Flame, gradient: 'from-violet-400 to-violet-600', bgColor: 'bg-violet-50' },
+  'krepezh': { icon: Hammer, gradient: 'from-rose-400 to-rose-600', bgColor: 'bg-rose-50' },
+  'lakokrasochnye-materialy': { icon: PaintBucket, gradient: 'from-pink-400 to-pink-600', bgColor: 'bg-pink-50' },
+  'otdelka': { icon: Paintbrush, gradient: 'from-cyan-400 to-cyan-600', bgColor: 'bg-cyan-50' },
+  'instrumenty-i-rashodnye-materialy': { icon: Wrench, gradient: 'from-amber-400 to-amber-600', bgColor: 'bg-amber-50' },
+  
+  // Дополнительные категории
+  'profili': { icon: RailSymbol, gradient: 'from-slate-400 to-slate-600', bgColor: 'bg-slate-50' },
+  'profili-i-napravlyayuschie': { icon: RailSymbol, gradient: 'from-slate-400 to-slate-600', bgColor: 'bg-slate-50' },
+  'gidroizolyaciya': { icon: Droplets, gradient: 'from-blue-400 to-blue-600', bgColor: 'bg-blue-50' },
+  'armatura-i-kladochnaya-setka': { icon: Grid3x3, gradient: 'from-red-400 to-red-600', bgColor: 'bg-red-50' },
+  'armatura': { icon: Grid3x3, gradient: 'from-red-400 to-red-600', bgColor: 'bg-red-50' },
+  'plity': { icon: TreeDeciduous, gradient: 'from-amber-500 to-amber-700', bgColor: 'bg-amber-50' },
+  'drevesnye-plity': { icon: TreeDeciduous, gradient: 'from-amber-500 to-amber-700', bgColor: 'bg-amber-50' },
+  'proftruby': { icon: Cylinder, gradient: 'from-zinc-500 to-zinc-700', bgColor: 'bg-zinc-100' },
+  'proftruby-i-metallicheskie-ugly': { icon: Cylinder, gradient: 'from-zinc-500 to-zinc-700', bgColor: 'bg-zinc-100' },
+  'brus': { icon: TreePine, gradient: 'from-yellow-500 to-yellow-700', bgColor: 'bg-yellow-50' },
+  'vagonka-i-bruski': { icon: TreePine, gradient: 'from-yellow-500 to-yellow-700', bgColor: 'bg-yellow-50' },
+  'mayaki': { icon: Ruler, gradient: 'from-teal-400 to-teal-600', bgColor: 'bg-teal-50' },
+  'mayaki-i-perforirovannye-ugly': { icon: Ruler, gradient: 'from-teal-400 to-teal-600', bgColor: 'bg-teal-50' },
+  'izolyaciya': { icon: Shield, gradient: 'from-purple-400 to-purple-600', bgColor: 'bg-purple-50' },
 };
 
-const defaultStyle = { icon: FaBoxOpen, gradient: 'from-gray-400 to-gray-600', bgColor: 'bg-gray-50' };
+const defaultStyle = { icon: Box, gradient: 'from-gray-400 to-gray-600', bgColor: 'bg-gray-50' };
 
 // Принудительно динамический рендеринг для получения данных из БД
 export const dynamic = 'force-dynamic';

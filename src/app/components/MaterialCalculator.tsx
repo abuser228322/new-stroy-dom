@@ -2,6 +2,48 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useCart } from '../context/CartContext';
+import {
+  Ruler,
+  PaintRoller,
+  Droplet,
+  Palette,
+  Droplets,
+  LayoutGrid,
+  Grid2x2,
+  Snowflake,
+  Blocks,
+  SprayCan,
+  Layers,
+  FileSpreadsheet,
+  Cylinder,
+  Grid3x3,
+  Blend,
+  Square,
+  Home,
+  type LucideIcon,
+} from 'lucide-react';
+
+// Маппинг slug категорий калькулятора -> Lucide иконки
+const CALCULATOR_CATEGORY_ICONS: Record<string, LucideIcon> = {
+  'plaster': Ruler,               // Штукатурка - линейка/выравнивание стен
+  'putty': PaintRoller,           // Шпаклёвка - валик
+  'floor': Blend,                 // Наливной пол - смешивание/заливка
+  'tile_adhesive': Grid2x2,       // Плиточный клей - плитка
+  'paint': Palette,               // Краска - палитра
+  'drywall': LayoutGrid,          // Гипсокартон - листы
+  'insulation': Snowflake,        // Утеплитель - теплоизоляция
+  'masonry': Blocks,              // Кладочная смесь - блоки
+  'profnastil': Layers,           // Профнастил - слои
+  'gruntovka': Droplet,           // Грунтовка - капля
+  'adhesive_plaster': Home,       // Штукатурно-клеевая смесь - дом/фасад
+  'grout': Grid3x3,               // Затирка - швы между плитками
+  'enamel': SprayCan,             // Эмаль - баллончик
+  'membrane': FileSpreadsheet,    // Изоляционные плёнки - рулон/листы
+  'pena': Cylinder,               // Пена монтажная - баллон
+  'primer': Droplets,             // Грунтовка глубокого проникновения
+  // Fallback иконки
+  'default': Square,
+};
 
 // Типы материалов
 type MaterialCategory = 
@@ -876,14 +918,15 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
   // Категории уже определены в useMemo выше
   // const categories = Object.keys(MATERIALS_CONFIG) as MaterialCategory[];
   
-  // Получаем название/иконку категории
+  // Получаем название/иконку категории (теперь возвращает компонент Lucide)
   const getCategoryInfo = useCallback((slug: string) => {
+    const IconComponent = CALCULATOR_CATEGORY_ICONS[slug] || CALCULATOR_CATEGORY_ICONS['default'];
     if (isDbMode) {
       const cat = dbCategories.find(c => c.slug === slug);
-      return { name: cat?.name || slug, icon: cat?.icon || '📦' };
+      return { name: cat?.name || slug, Icon: IconComponent };
     }
     const localConfig = MATERIALS_CONFIG[slug as MaterialCategory];
-    return { name: localConfig?.name || slug, icon: localConfig?.icon || '📦' };
+    return { name: localConfig?.name || slug, Icon: IconComponent };
   }, [isDbMode, dbCategories]);
 
   // Показываем загрузку
@@ -961,6 +1004,7 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
                 <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
                   {categories.map((cat) => {
                     const info = getCategoryInfo(cat);
+                    const IconComponent = info.Icon;
                     return (
                       <button
                         key={cat}
@@ -971,7 +1015,9 @@ export default function MaterialCalculator({ className = '', alwaysExpanded = fa
                             : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                         }`}
                       >
-                        <span className="text-lg sm:text-2xl block mb-1">{info.icon}</span>
+                        <div className="flex justify-center mb-1">
+                          <IconComponent className="w-5 h-5 sm:w-7 sm:h-7" />
+                        </div>
                         <span className="text-[10px] sm:text-xs font-medium leading-tight block">{info.name}</span>
                       </button>
                     );

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import { FaPhone, FaMapMarkerAlt, FaClock, FaPaperPlane } from 'react-icons/fa';
+import { FaPaperPlane } from 'react-icons/fa';
 import type { CreateContactRequestData } from '../types/types';
-import { formatStoreHoursInline } from '../lib/storeHours';
+
 
 export default function ContactForm() {
   const [formData, setFormData] = useState<CreateContactRequestData>({
@@ -44,68 +44,8 @@ export default function ContactForm() {
   return (
     <section className="py-12 lg:py-20 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          {/* Левая колонка - информация */}
-          <div>
-            <span className="inline-block px-4 py-1.5 bg-sky-100 text-sky-600 rounded-full text-sm font-medium mb-4">
-              Свяжитесь с нами
-            </span>
-            <h2 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Остались вопросы?
-            </h2>
-            <p className="text-gray-600 mb-8 text-lg">
-              Оставьте заявку и наш менеджер свяжется с вами в ближайшее время. 
-              Поможем подобрать материалы, рассчитаем стоимость и организуем доставку.
-            </p>
-            
-            <div className="space-y-5">
-              <a 
-                href="tel:+79371333366" 
-                className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center flex-shrink-0 group-hover:from-sky-200 group-hover:to-sky-300 transition-colors">
-                  <FaPhone className="text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Телефон</p>
-                  <p className="text-lg font-bold text-gray-900 group-hover:text-sky-600 transition-colors">
-                    8-937-133-33-66
-                  </p>
-                </div>
-              </a>
-              
-              <a 
-                href="https://yandex.ru/maps/-/CHe38Zwa"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow group"
-              >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center flex-shrink-0 group-hover:from-orange-200 group-hover:to-orange-300 transition-colors">
-                  <FaMapMarkerAlt className="text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Адрес</p>
-                  <p className="text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                    г. Астрахань, ул. Рыбинская, 25Н
-                  </p>
-                </div>
-              </a>
-              
-              <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center flex-shrink-0">
-                  <FaClock className="text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Режим работы</p>
-                  <p className="text-lg font-bold text-gray-900">
-                    {formatStoreHoursInline()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Правая колонка - форма */}
+        <div className="max-w-xl mx-auto">
+          {/* Форма */}
           <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-xl border border-gray-100">
             <h3 className="text-xl font-bold text-gray-900 mb-6">Оставить заявку</h3>
             

@@ -3,27 +3,29 @@
 import React from "react";
 import Link from "next/link";
 import { 
-  FaLayerGroup, 
-  FaCube, 
-  FaSquare, 
-  FaTemperatureHigh, 
-  FaScrewdriver, 
-  FaPaintRoller, 
-  FaTh,
-  FaTools 
-} from "react-icons/fa";
+  Layers,           // Профнастил
+  BrickWall,        // Сухие смеси - кирпичная стена
+  Square,           // Гипсокартон - лист
+  Flame,            // Утеплители - тепло
+  Hammer,           // Крепёж
+  PaintBucket,      // Краски
+  Paintbrush,       // Отделка - кисть
+  Wrench,           // Инструменты
+  Box,              // Дефолтная иконка
+  LucideIcon,
+} from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 
-// Маппинг иконок для категорий
-const categoryIcons: Record<string, { icon: React.ElementType; gradient: string }> = {
-  "profnastil": { icon: FaLayerGroup, gradient: "from-sky-400 to-sky-600" },
-  "suhie-smesi": { icon: FaCube, gradient: "from-orange-400 to-orange-600" },
-  "gipsokarton": { icon: FaSquare, gradient: "from-emerald-400 to-emerald-600" },
-  "utepliteli": { icon: FaTemperatureHigh, gradient: "from-violet-400 to-violet-600" },
-  "krepezh": { icon: FaScrewdriver, gradient: "from-rose-400 to-rose-600" },
-  "lakokrasochnye-materialy": { icon: FaPaintRoller, gradient: "from-amber-400 to-amber-600" },
-  "otdelka": { icon: FaTh, gradient: "from-cyan-400 to-cyan-600" },
-  "instrumenty-i-rashodnye-materialy": { icon: FaTools, gradient: "from-slate-500 to-slate-700" },
+// Маппинг иконок для категорий - строительная тематика
+const categoryIcons: Record<string, { icon: LucideIcon; gradient: string }> = {
+  "profnastil": { icon: Layers, gradient: "from-sky-400 to-sky-600" },
+  "suhie-smesi": { icon: BrickWall, gradient: "from-orange-400 to-orange-600" },
+  "gipsokarton": { icon: Square, gradient: "from-emerald-400 to-emerald-600" },
+  "utepliteli": { icon: Flame, gradient: "from-violet-400 to-violet-600" },
+  "krepezh": { icon: Hammer, gradient: "from-rose-400 to-rose-600" },
+  "lakokrasochnye-materialy": { icon: PaintBucket, gradient: "from-pink-400 to-pink-600" },
+  "otdelka": { icon: Paintbrush, gradient: "from-cyan-400 to-cyan-600" },
+  "instrumenty-i-rashodnye-materialy": { icon: Wrench, gradient: "from-amber-400 to-amber-600" },
 };
 
 // Выбираем 8 популярных категорий для отображения на главной
@@ -92,7 +94,7 @@ export default function PopularCategories() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-6">
           {popularCategories.map((category) => {
-            const iconConfig = categoryIcons[category.slug] || { icon: FaCube, gradient: "from-gray-400 to-gray-600" };
+            const iconConfig = categoryIcons[category.slug] || { icon: Box, gradient: "from-gray-400 to-gray-600" };
             const IconComponent = iconConfig.icon;
             
             return (
@@ -104,7 +106,7 @@ export default function PopularCategories() {
                 <div className="flex flex-col items-center text-center">
                   {/* Иконка категории */}
                   <div className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 mb-2 sm:mb-4 flex items-center justify-center bg-gradient-to-br ${iconConfig.gradient} rounded-xl sm:rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="text-white text-lg sm:text-2xl lg:text-3xl" />
+                    <IconComponent className="text-white w-5 h-5 sm:w-7 sm:h-7 lg:w-9 lg:h-9" strokeWidth={2} />
                   </div>
 
                   {/* Название категории */}

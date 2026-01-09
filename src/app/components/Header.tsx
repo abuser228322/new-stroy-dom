@@ -351,14 +351,15 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Кнопка Каталог с mega-menu */}
+          {/* Кнопка Каталог с mega-menu - ссылка + dropdown при hover */}
           <div 
             className="relative hidden lg:block shrink-0"
             ref={catalogRef}
             onMouseEnter={handleCatalogEnter}
             onMouseLeave={handleCatalogLeave}
           >
-            <button 
+            <Link 
+              href="/catalog"
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all ${
                 isCatalogOpen 
                   ? 'bg-sky-600 text-white' 
@@ -372,7 +373,7 @@ export default function Header() {
               <svg className={`w-4 h-4 transition-transform ${isCatalogOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
-            </button>
+            </Link>
 
             {/* Mega-menu - две колонки */}
             {isCatalogOpen && (

@@ -3,12 +3,14 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useCategories } from '@/hooks/useCategories';
-import { formatStoreHoursLines } from '../lib/storeHours';
 
 const CONTACT_INFO = {
   phone: '8-937-133-33-66',
   phoneClean: '+79371333366',
-  address: 'г. Астрахань, ул. Рыбинская, 25Н',
+  stores: [
+    { name: 'Магазин №1', address: 'ул. Рыбинская, 25Н', note: 'Рынок «Славянка»', hours: 'Пн-Сб: 08:00-16:00, Вск: 08:00-14:00' },
+    { name: 'Магазин №2', address: 'пл. Свободы, 14К', note: '', hours: 'Пн-Сб: 09:00-19:00, Вск: 10:00-18:00' },
+  ],
   email: 'info@stroydom30.ru',
 };
 
@@ -83,7 +85,6 @@ function AccordionSection({ title, sectionKey, items, isOpen, onToggle }: Accord
 export default function Footer() {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const { categories } = useCategories();
-  const hours = formatStoreHoursLines();
 
   // Генерируем ссылки каталога из БД
   const catalogLinks = categories.slice(0, 8).map((cat) => ({
@@ -165,24 +166,20 @@ export default function Footer() {
                   </div>
                   <span>{CONTACT_INFO.email}</span>
                 </a>
-                <div className="flex items-center gap-3 text-gray-300">
-                  <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center">
+                <div className="flex items-start gap-3 text-gray-300">
+                  <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg className="w-5 h-5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
-                  <span>{CONTACT_INFO.address}</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-300">
-                  <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex flex-col">
-                    <span>{hours.monSat}</span>
-                    <span className="text-sm text-gray-400">{hours.sun}</span>
+                  <div className="flex flex-col text-sm space-y-2">
+                    {CONTACT_INFO.stores.map((store, idx) => (
+                      <div key={idx}>
+                        <span className="block">{store.address}</span>
+                        <span className="text-xs text-gray-400">{store.hours}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -309,8 +306,7 @@ export default function Footer() {
               >
                 {CONTACT_INFO.phone}
               </a>
-              <p className="text-sm text-gray-500">{hours.monSat}</p>
-              <p className="text-xs text-gray-500">{hours.sun}</p>
+              <p className="text-xs text-gray-500">Ежедневно</p>
             </div>
 
             {/* Ссылка на разработчика */}

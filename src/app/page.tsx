@@ -6,7 +6,8 @@ import PopularCategories from './components/PopularCategories';
 import StoreInfo from './components/StoreInfo';
 import ContactForm from './components/ContactForm';
 import MaterialCalculator from './components/MaterialCalculator';
-import { formatStoreHoursInline } from './lib/storeHours';
+import { formatStoreHoursInline, isStoreOpenNow, RYBINSKAYA_HOURS, SVOBODY_HOURS, formatStoreHoursLines } from './lib/storeHours';
+import StoreStatusBadge from './components/StoreStatusBadge';
 
 export const metadata: Metadata = {
   title: 'Строй Дом - Магазин строительных материалов в Астрахани',
@@ -56,11 +57,8 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Текстовый блок */}
             <div className="text-white text-center lg:text-left">
-              {/* Бейдж */}
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-4 sm:mb-6 border border-white/20">
-                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs sm:text-sm font-medium">{formatStoreHoursInline()}</span>
-              </div>
+              {/* Бейдж с графиком работы двух магазинов */}
+              <StoreStatusBadge />
               
               <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
                 Строительные
@@ -115,40 +113,40 @@ export default function Home() {
             <div className="hidden lg:block relative">
               <div className="grid grid-cols-2 gap-4">
                 {/* Карточка 1 */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:-translate-y-1">
+                <Link href="/catalog/instrumenty-i-rashodnye-materialy" className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:-translate-y-1 block">
                   <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center mb-4">
                     <FaTools className="text-white text-2xl" />
                   </div>
                   <h3 className="font-bold text-white mb-1">Инструменты</h3>
                   <p className="text-sm text-slate-400">Всё для строительства</p>
-                </div>
+                </Link>
                 
                 {/* Карточка 2 */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mt-8 hover:bg-white/15 transition-all hover:-translate-y-1">
+                <Link href="/catalog/profnastil" className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mt-8 hover:bg-white/15 transition-all hover:-translate-y-1 block">
                   <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-xl flex items-center justify-center mb-4">
                     <FaHardHat className="text-white text-2xl" />
                   </div>
                   <h3 className="font-bold text-white mb-1">Профнастил</h3>
                   <p className="text-sm text-slate-400">Кровля и ограждения</p>
-                </div>
+                </Link>
                 
                 {/* Карточка 3 */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:-translate-y-1">
+                <Link href="/catalog/utepliteli" className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 hover:bg-white/15 transition-all hover:-translate-y-1 block">
                   <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mb-4">
                     <FaShieldAlt className="text-white text-2xl" />
                   </div>
                   <h3 className="font-bold text-white mb-1">Утеплители</h3>
                   <p className="text-sm text-slate-400">Теплоизоляция</p>
-                </div>
+                </Link>
                 
                 {/* Карточка 4 */}
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mt-8 hover:bg-white/15 transition-all hover:-translate-y-1">
+                <Link href="/catalog/suhie-smesi" className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 mt-8 hover:bg-white/15 transition-all hover:-translate-y-1 block">
                   <div className="w-14 h-14 bg-gradient-to-br from-violet-400 to-violet-600 rounded-xl flex items-center justify-center mb-4">
                     <FaWarehouse className="text-white text-2xl" />
                   </div>
                   <h3 className="font-bold text-white mb-1">Сухие смеси</h3>
                   <p className="text-sm text-slate-400">Штукатурки, клеи</p>
-                </div>
+                </Link>
               </div>
             </div>
           </div>

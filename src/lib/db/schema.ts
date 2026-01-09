@@ -363,3 +363,21 @@ export type NewCalculatorInput = typeof calculatorInputs.$inferInsert;
 
 export type CalculatorFormula = typeof calculatorFormulas.$inferSelect;
 export type NewCalculatorFormula = typeof calculatorFormulas.$inferInsert;
+
+// ==================== СЛАЙДЫ ГЛАВНОЙ СТРАНИЦЫ ====================
+
+export const heroSlides = pgTable("hero_slides", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  buttonText: varchar("button_text", { length: 100 }),
+  buttonLink: varchar("button_link", { length: 255 }),
+  emoji: varchar("emoji", { length: 50 }).notNull(), // Эмодзи для слайда
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type HeroSlide = typeof heroSlides.$inferSelect;
+export type NewHeroSlide = typeof heroSlides.$inferInsert;

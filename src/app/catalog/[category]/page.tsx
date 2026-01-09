@@ -2,9 +2,13 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  FaCube, FaPaintBrush, FaSquare, FaTint, FaWrench, 
-  FaRuler, FaLayerGroup, FaBoxOpen, FaChevronRight 
-} from 'react-icons/fa';
+  BrickWall, Paintbrush, Blocks, Droplet, Wrench, 
+  Ruler, Layers, Box, ChevronRight,
+  Flame, Shield, Droplets,
+  Hammer, Grid3x3, Cylinder, TreePine, TreeDeciduous,
+  Sparkles, ScrollText, Square, RailSymbol,
+  LucideIcon, PaintBucket, CircleDot, Disc,
+} from 'lucide-react';
 import { getCategoryBySlug, getAllCategories } from '@/lib/db/queries';
 
 interface CategoryPageProps {
@@ -48,18 +52,102 @@ export async function generateStaticParams() {
   }
 }
 
-// Иконки и цвета для подкатегорий
-const subcategoryIcons: Record<string, { icon: React.ElementType; color: string }> = {
-  'shtukaturka': { icon: FaCube, color: 'bg-orange-100 text-orange-600' },
-  'shpatlevka': { icon: FaPaintBrush, color: 'bg-pink-100 text-pink-600' },
-  'plitochnyj-klej': { icon: FaSquare, color: 'bg-blue-100 text-blue-600' },
-  'zatirka': { icon: FaTint, color: 'bg-cyan-100 text-cyan-600' },
-  'montazhnaya-smes': { icon: FaWrench, color: 'bg-slate-100 text-slate-600' },
-  'styazhka-pola': { icon: FaRuler, color: 'bg-emerald-100 text-emerald-600' },
-  'kladochnye-smesi': { icon: FaLayerGroup, color: 'bg-amber-100 text-amber-600' },
+// Иконки и цвета для подкатегорий - расширенный список
+const subcategoryIcons: Record<string, { icon: LucideIcon; color: string }> = {
+  // Сухие смеси
+  'shtukaturka': { icon: BrickWall, color: 'bg-orange-100 text-orange-600' },
+  'shpatlevka': { icon: Paintbrush, color: 'bg-pink-100 text-pink-600' },
+  'plitochnyy-kley': { icon: Blocks, color: 'bg-blue-100 text-blue-600' },
+  'zatirka': { icon: Droplet, color: 'bg-cyan-100 text-cyan-600' },
+  'montazhnyy-kley': { icon: Blocks, color: 'bg-slate-100 text-slate-600' },
+  'smesi-dlya-pola': { icon: Layers, color: 'bg-emerald-100 text-emerald-600' },
+  'kley-dlya-blokov': { icon: Blocks, color: 'bg-amber-100 text-amber-600' },
+  'shtukaturno-kleevaya-smes': { icon: BrickWall, color: 'bg-orange-100 text-orange-600' },
+  'dekorativnaya-shtukaturka': { icon: Sparkles, color: 'bg-violet-100 text-violet-600' },
+  'cement': { icon: BrickWall, color: 'bg-gray-200 text-gray-700' },
+  
+  // Утеплители
+  'penopolistirol': { icon: Square, color: 'bg-violet-100 text-violet-600' },
+  'penoplast': { icon: Square, color: 'bg-blue-100 text-blue-600' },
+  'kamennaya-i-mineralnaya-vata': { icon: Flame, color: 'bg-yellow-100 text-yellow-600' },
+  
+  // Гидроизоляция
+  'suhaya-smes': { icon: BrickWall, color: 'bg-blue-100 text-blue-600' },
+  'zhidkaya-gidroizolyaciya': { icon: Droplets, color: 'bg-cyan-100 text-cyan-600' },
+  'lenta-gidroizolyacionnaya': { icon: ScrollText, color: 'bg-teal-100 text-teal-600' },
+  
+  // Изоляция
+  'otrazhayuschaya-teploizolyaciya': { icon: Shield, color: 'bg-amber-100 text-amber-600' },
+  'paroizolyaciya': { icon: Shield, color: 'bg-slate-100 text-slate-600' },
+  'gidro-paroizolyaciya': { icon: Droplets, color: 'bg-blue-100 text-blue-600' },
+  'podlozhka': { icon: Layers, color: 'bg-green-100 text-green-600' },
+  
+  // Крепёж
+  'samorezy-dlya-gipsokartona': { icon: Hammer, color: 'bg-rose-100 text-rose-600' },
+  'krovelnye-samorezy': { icon: Hammer, color: 'bg-red-100 text-red-600' },
+  'gvozdi': { icon: Hammer, color: 'bg-slate-100 text-slate-600' },
+  'dyubeli': { icon: CircleDot, color: 'bg-gray-100 text-gray-600' },
+  'bolty-gayky': { icon: Wrench, color: 'bg-zinc-100 text-zinc-600' },
+  'krovelnyy-krepezh': { icon: Hammer, color: 'bg-orange-100 text-orange-600' },
+  'profileobzhimatel': { icon: Ruler, color: 'bg-indigo-100 text-indigo-600' },
+  
+  // Профнастил
+  'mp-20': { icon: Layers, color: 'bg-sky-100 text-sky-600' },
+  's-8': { icon: Layers, color: 'bg-blue-100 text-blue-600' },
+  
+  // Гипсокартон
+  'dlya-suhih-pomescheniy': { icon: Square, color: 'bg-emerald-100 text-emerald-600' },
+  'vlagostoykiy': { icon: Droplets, color: 'bg-teal-100 text-teal-600' },
+  
+  // Профиля
+  'stenovye': { icon: RailSymbol, color: 'bg-slate-100 text-slate-600' },
+  'peregorodochnye': { icon: RailSymbol, color: 'bg-gray-100 text-gray-600' },
+  
+  // Маяки
+  'mayaki': { icon: Ruler, color: 'bg-teal-100 text-teal-600' },
+  'perforirovannye-ugly': { icon: Ruler, color: 'bg-slate-100 text-slate-600' },
+  
+  // Профтрубы
+  'proftruby': { icon: Cylinder, color: 'bg-zinc-100 text-zinc-600' },
+  'metallicheskie-ugly': { icon: Ruler, color: 'bg-gray-100 text-gray-600' },
+  
+  // Плиты
+  'osp': { icon: TreeDeciduous, color: 'bg-amber-100 text-amber-600' },
+  'dsp': { icon: TreeDeciduous, color: 'bg-yellow-100 text-yellow-600' },
+  'dvp': { icon: TreeDeciduous, color: 'bg-orange-100 text-orange-600' },
+  'fanera': { icon: Layers, color: 'bg-lime-100 text-lime-600' },
+  
+  // Вагонка и брус
+  'vagonka': { icon: TreePine, color: 'bg-green-100 text-green-600' },
+  'bruski': { icon: TreePine, color: 'bg-emerald-100 text-emerald-600' },
+  
+  // Арматура
+  'stekloplastikovaya-armatura': { icon: Grid3x3, color: 'bg-blue-100 text-blue-600' },
+  'kladochnaya-setka': { icon: Grid3x3, color: 'bg-slate-100 text-slate-600' },
+  
+  // Лакокрасочные
+  'vodoemulsionnye-kraski': { icon: PaintBucket, color: 'bg-sky-100 text-sky-600' },
+  'emali': { icon: PaintBucket, color: 'bg-rose-100 text-rose-600' },
+  'laki-i-propitki': { icon: Droplet, color: 'bg-amber-100 text-amber-600' },
+  
+  // Отделка
+  'gruntovka': { icon: Droplets, color: 'bg-cyan-100 text-cyan-600' },
+  'betonokontakt': { icon: Droplets, color: 'bg-pink-100 text-pink-600' },
+  'gotovye-shpatlevki': { icon: Paintbrush, color: 'bg-violet-100 text-violet-600' },
+  'klej': { icon: Droplet, color: 'bg-blue-100 text-blue-600' },
+  'pena-montazhnaya': { icon: Cylinder, color: 'bg-yellow-100 text-yellow-600' },
+  'steklotkan': { icon: Layers, color: 'bg-gray-100 text-gray-600' },
+  
+  // Инструменты
+  'valiki': { icon: Paintbrush, color: 'bg-orange-100 text-orange-600' },
+  'shpateli': { icon: Paintbrush, color: 'bg-slate-100 text-slate-600' },
+  'kisti': { icon: Paintbrush, color: 'bg-amber-100 text-amber-600' },
+  'svp': { icon: Ruler, color: 'bg-blue-100 text-blue-600' },
+  'diski': { icon: Disc, color: 'bg-red-100 text-red-600' },
+  'bity': { icon: Wrench, color: 'bg-zinc-100 text-zinc-600' },
 };
 
-const defaultIcon = { icon: FaBoxOpen, color: 'bg-sky-100 text-sky-600' };
+const defaultIcon = { icon: Box, color: 'bg-sky-100 text-sky-600' };
 
 // Принудительно динамический рендеринг для получения данных из БД
 export const dynamic = 'force-dynamic';
@@ -134,7 +222,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                     className="group flex items-center gap-3 sm:gap-4 p-3 sm:p-5 bg-white rounded-xl sm:rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-sky-200 transition-all hover:-translate-y-0.5"
                   >
                     <div className={`w-10 h-10 sm:w-14 sm:h-14 ${iconConfig.color} rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-                      <IconComponent className="text-base sm:text-xl" />
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
                     </div>
                     <div className="grow min-w-0">
                       <h3 className="font-semibold text-gray-900 group-hover:text-sky-600 transition-colors text-sm sm:text-base">
@@ -142,7 +230,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                       </h3>
                       <p className="text-xs sm:text-sm text-gray-500">Смотреть товары →</p>
                     </div>
-                    <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all shrink-0" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all shrink-0" />
                   </Link>
                 );
               })}
@@ -152,7 +240,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           // Если нет подкатегорий, показываем заглушку для товаров
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <FaBoxOpen className="w-10 h-10 text-gray-400" />
+              <Box className="w-10 h-10 text-gray-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Товары скоро появятся
