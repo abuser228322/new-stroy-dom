@@ -40,6 +40,11 @@ export interface Product {
   categorySlug?: string;           // Slug категории для URL
   subcategorySlug?: string;        // Slug подкатегории для URL
   
+  // Магазин
+  storeId?: number | null;         // ID магазина
+  storeSlug?: string;              // Slug магазина (rybinskaya, svobody)
+  storeName?: string;              // Название магазина для отображения
+  
   // Цены
   price?: number;                  // Фиксированная цена
   pricesBySize?: Record<string, number> | null;  // Цены по размерам

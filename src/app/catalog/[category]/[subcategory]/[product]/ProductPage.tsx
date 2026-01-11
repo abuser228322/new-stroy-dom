@@ -62,6 +62,9 @@ export default function ProductPage({ product, category, subcategory, relatedPro
       subCategory: product.subCategory,
       categorySlug: category.slug,
       subcategorySlug: subcategory.slug,
+      storeId: product.storeId || 1,
+      storeSlug: product.storeSlug || 'rybinskaya',
+      storeName: product.storeName || 'Рыбинская',
     });
 
     setIsAdded(true);

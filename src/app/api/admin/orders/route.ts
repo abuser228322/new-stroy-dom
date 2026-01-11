@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { orders, orderItems, users } from "@/lib/db/schema";
-import { desc, eq, and, or, ilike, sql } from "drizzle-orm";
+import { orders } from "@/lib/db/schema";
+import { desc, and, or, ilike, sql } from "drizzle-orm";
 import { requireAdmin, authErrorResponse } from "@/lib/auth-utils";
 
 // GET - получить все заказы с фильтрами
@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
   const status = searchParams.get("status");
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") || "desc";
   
   const offset = (page - 1) * limit;
@@ -24,7 +23,7 @@ export async function GET(request: NextRequest) {
     const conditions = [];
     
     if (status && status !== "all") {
-      conditions.push(eq(orders.status, status as any));
+      conditions.push(sql`${orders.status} = ${status}`);
     }
     
     if (search) {
@@ -40,13 +39,19 @@ export async function GET(request: NextRequest) {
     
     const where = conditions.length > 0 ? and(...conditions) : undefined;
     
-    // Получаем заказы
+    // Получаем заказы с частями
     const allOrders = await db.query.orders.findMany({
       where,
       orderBy: sortOrder === "desc" ? [desc(orders.createdAt)] : [orders.createdAt],
       limit,
       offset,
       with: {
+        parts: {
+          with: {
+            store: true,
+            items: true,
+          },
+        },
         items: true,
         user: {
           columns: {

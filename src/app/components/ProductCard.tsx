@@ -62,6 +62,9 @@ export default function ProductCard({
       subCategory: product.subCategory,
       categorySlug: catSlug,
       subcategorySlug: subSlug,
+      storeId: product.storeId || 1,
+      storeSlug: product.storeSlug || 'rybinskaya',
+      storeName: product.storeName || 'Рыбинская',
     };
 
     addItem(cartItem);

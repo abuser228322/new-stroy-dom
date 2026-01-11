@@ -1,20 +1,58 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import type { CartItem, Store, OrderPartDeliveryData } from '@/types';
 
 const CONTACT_INFO = {
   phone: '8-937-133-33-66',
   phoneClean: '+79371333366',
 };
 
+// Типы магазинов (хардкод для начала, потом можно загружать из API)
+const STORES: Store[] = [
+  {
+    id: 1,
+    slug: 'rybinskaya',
+    name: 'Строй Дом - Рыбинская',
+    shortName: 'Рыбинская',
+    address: 'ул. Рыбинская, 25Н, г. Астрахань',
+    phone: '+79371333366',
+    workingHours: {
+      monSat: '08:00-16:00',
+      sun: '08:00-14:00',
+    },
+    assortmentDescription: 'Стройматериалы: смеси, профили, гипсокартон, утеплители, крепёж, инструменты',
+  },
+  {
+    id: 2,
+    slug: 'svobody',
+    name: 'Строй Дом - пл. Свободы',
+    shortName: 'пл. Свободы',
+    address: 'пл. Свободы, 14К, г. Астрахань',
+    phone: '+79371333366',
+    workingHours: {
+      monSat: '09:00-19:00',
+      sun: '10:00-18:00',
+    },
+    assortmentDescription: 'Напольные покрытия, двери, фурнитура, отделочные материалы',
+  },
+];
+
 interface AppliedCoupon {
   code: string;
   discountType: 'percent' | 'fixed';
   discountValue: number;
   maxDiscountAmount: number | null;
+}
+
+// Группировка товаров по магазинам
+interface StoreGroup {
+  store: Store;
+  items: CartItem[];
+  subtotal: number;
 }
 
 export default function CartPage() {
@@ -24,11 +62,17 @@ export default function CartPage() {
     name: '',
     phone: '',
     email: '',
-    address: '',
     comment: '',
-    delivery: 'pickup_rybinskaya', // pickup_rybinskaya | pickup_svobody | delivery
-    payment: 'cash', // cash | card
+    payment: 'cash' as 'cash' | 'card',
   });
+  
+  // Данные доставки для каждого магазина
+  const [partsDelivery, setPartsDelivery] = useState<Record<string, {
+    deliveryType: 'pickup' | 'delivery';
+    address: string;
+    comment: string;
+  }>>({});
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   
@@ -38,13 +82,52 @@ export default function CartPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
 
+  // Группируем товары по магазинам
+  const storeGroups = useMemo((): StoreGroup[] => {
+    const groups: Record<string, CartItem[]> = {};
+    
+    items.forEach(item => {
+      const storeSlug = item.storeSlug || 'rybinskaya'; // По умолчанию Рыбинская
+      if (!groups[storeSlug]) {
+        groups[storeSlug] = [];
+      }
+      groups[storeSlug].push(item);
+    });
+    
+    return Object.entries(groups).map(([storeSlug, storeItems]) => {
+      const store = STORES.find(s => s.slug === storeSlug) || STORES[0];
+      const subtotal = storeItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      return { store, items: storeItems, subtotal };
+    });
+  }, [items]);
+
+  // Инициализация partsDelivery при изменении storeGroups
+  useEffect(() => {
+    const newPartsDelivery: typeof partsDelivery = {};
+    storeGroups.forEach(group => {
+      if (!partsDelivery[group.store.slug]) {
+        newPartsDelivery[group.store.slug] = {
+          deliveryType: 'pickup',
+          address: '',
+          comment: '',
+        };
+      } else {
+        newPartsDelivery[group.store.slug] = partsDelivery[group.store.slug];
+      }
+    });
+    setPartsDelivery(newPartsDelivery);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeGroups.map(g => g.store.slug).join(',')]);
+
+  // Проверяем, есть ли хотя бы одна доставка
+  const hasDelivery = Object.values(partsDelivery).some(p => p.deliveryType === 'delivery');
+
   // Расчёт скидки по купону
   const calculateDiscount = () => {
     if (!appliedCoupon) return 0;
     
     if (appliedCoupon.discountType === 'percent') {
       const discount = totalAmount * (appliedCoupon.discountValue / 100);
-      // Учитываем максимальную скидку
       if (appliedCoupon.maxDiscountAmount) {
         return Math.min(discount, appliedCoupon.maxDiscountAmount);
       }
@@ -97,7 +180,6 @@ export default function CartPage() {
     }
   };
 
-  // Удаление купона
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponError('');
@@ -114,11 +196,47 @@ export default function CartPage() {
     setOrderData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Обновление способа доставки для магазина
+  const updateStoreDelivery = (
+    storeSlug: string, 
+    field: 'deliveryType' | 'address' | 'comment', 
+    value: string
+  ) => {
+    setPartsDelivery(prev => ({
+      ...prev,
+      [storeSlug]: {
+        ...prev[storeSlug],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Отправка заказа
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Проверяем что для доставки указан адрес
+    for (const [storeSlug, delivery] of Object.entries(partsDelivery)) {
+      if (delivery.deliveryType === 'delivery' && !delivery.address.trim()) {
+        alert(`Укажите адрес доставки для магазина ${STORES.find(s => s.slug === storeSlug)?.shortName}`);
+        return;
+      }
+    }
+    
     setIsSubmitting(true);
 
     try {
+      // Формируем partsDelivery для API
+      const partsDeliveryData: OrderPartDeliveryData[] = storeGroups.map(group => ({
+        storeId: group.store.id,
+        storeSlug: group.store.slug,
+        deliveryType: partsDelivery[group.store.slug]?.deliveryType || 'pickup',
+        deliveryAddress: partsDelivery[group.store.slug]?.deliveryType === 'delivery' 
+          ? partsDelivery[group.store.slug]?.address 
+          : undefined,
+        deliveryComment: partsDelivery[group.store.slug]?.comment || undefined,
+      }));
+
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -126,11 +244,10 @@ export default function CartPage() {
           customerName: orderData.name,
           customerPhone: orderData.phone,
           customerEmail: orderData.email || null,
-          deliveryType: orderData.delivery,
           paymentMethod: orderData.payment,
-          deliveryAddress: orderData.delivery === 'delivery' ? orderData.address : null,
           customerComment: orderData.comment || null,
           couponCode: appliedCoupon?.code || null,
+          partsDelivery: partsDeliveryData,
           items: items.map(item => ({
             productId: item.productId,
             urlId: item.urlId,
@@ -140,6 +257,8 @@ export default function CartPage() {
             quantity: item.quantity,
             size: item.size,
             unit: item.unit,
+            storeId: item.storeId,
+            storeSlug: item.storeSlug || 'rybinskaya',
           })),
         }),
       });
@@ -248,116 +367,186 @@ export default function CartPage() {
         </h1>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Список товаров */}
-          <div className="grow space-y-4">
-            {items.map((item) => {
-              // Используем categorySlug/subcategorySlug из item (сохранены при добавлении в корзину)
-              const categorySlug = item.categorySlug || 'catalog';
-              const subcategorySlug = item.subcategorySlug || '';
-              const productLink = subcategorySlug 
-                ? `/catalog/${categorySlug}/${subcategorySlug}/${item.urlId}`
-                : `/catalog/${categorySlug}/${item.urlId}`;
-              
-              return (
-                <div
-                  key={`${item.productId}-${item.size}`}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-5 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex gap-3 sm:gap-5">
-                    {/* Изображение */}
-                    <Link
-                      href={productLink}
-                      className="relative w-16 h-16 sm:w-24 sm:h-24 shrink-0 bg-gray-100 rounded-lg overflow-hidden"
-                    >
-                      <Image
-                        src={item.image || '/images/placeholder.jpg'}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        sizes="96px"
-                      />
-                    </Link>
-
-                    {/* Информация */}
-                    <div className="grow min-w-0 flex flex-col">
-                      <div className="flex items-start justify-between gap-2">
-                        <Link
-                          href={productLink}
-                          className="font-semibold text-gray-900 hover:text-sky-600 transition-colors text-sm sm:text-base line-clamp-2"
-                        >
-                          {item.title}
-                        </Link>
-                        <button
-                          onClick={() => removeItem(item.productId, item.size)}
-                          className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
-                          aria-label="Удалить"
-                        >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+          {/* Список товаров, сгруппированных по магазинам */}
+          <div className="grow space-y-6">
+            {storeGroups.map((group) => (
+              <div key={group.store.slug} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                {/* Заголовок магазина */}
+                <div className="bg-gradient-to-r from-sky-50 to-cyan-50 px-4 sm:px-6 py-3 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🏪</span>
+                      <div>
+                        <h2 className="font-semibold text-gray-900">{group.store.shortName || group.store.name}</h2>
+                        <p className="text-xs text-gray-500">{group.store.address}</p>
                       </div>
-                      {item.size && item.size !== 'Стандарт' && (
-                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Размер: {item.size}</p>
-                      )}
-                      <p className="text-base sm:text-lg font-bold text-gray-900 mt-1 sm:mt-2">
-                        {formatPrice(item.price)} ₽
-                      </p>
                     </div>
-                  </div>
-
-                  {/* Количество и сумма - отдельная строка */}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.productId, item.size, item.quantity - 1)
-                        }
-                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                        disabled={item.quantity <= 1}
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                        </svg>
-                      </button>
-                      <input
-                        type="number"
-                        min="1"
-                        max="9999"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (!isNaN(val) && val >= 1) {
-                            updateQuantity(item.productId, item.size, Math.min(val, 9999));
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (isNaN(val) || val < 1) {
-                            updateQuantity(item.productId, item.size, 1);
-                          }
-                        }}
-                        className="w-14 sm:w-16 text-center font-semibold border border-gray-200 rounded-lg py-1 focus:ring-2 focus:ring-primary focus:border-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.productId, item.size, item.quantity + 1)
-                        }
-                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </button>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">{group.items.length} товар{group.items.length === 1 ? '' : group.items.length < 5 ? 'а' : 'ов'}</p>
+                      <p className="font-semibold text-gray-900">{formatPrice(group.subtotal)} ₽</p>
                     </div>
-
-                    <p className="text-sm sm:text-base font-semibold text-gray-900">
-                      {formatPrice(item.price * item.quantity)} ₽
-                    </p>
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Товары магазина */}
+                <div className="divide-y divide-gray-100">
+                  {group.items.map((item) => {
+                    const categorySlug = item.categorySlug || 'catalog';
+                    const subcategorySlug = item.subcategorySlug || '';
+                    const productLink = subcategorySlug 
+                      ? `/catalog/${categorySlug}/${subcategorySlug}/${item.urlId}`
+                      : `/catalog/${categorySlug}/${item.urlId}`;
+                    
+                    return (
+                      <div
+                        key={`${item.productId}-${item.size}`}
+                        className="p-3 sm:p-5 hover:bg-gray-50/50 transition-colors"
+                      >
+                        <div className="flex gap-3 sm:gap-5">
+                          <Link
+                            href={productLink}
+                            className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden"
+                          >
+                            <Image
+                              src={item.image || '/images/placeholder.jpg'}
+                              alt={item.title}
+                              fill
+                              className="object-cover"
+                              sizes="80px"
+                            />
+                          </Link>
+
+                          <div className="grow min-w-0 flex flex-col">
+                            <div className="flex items-start justify-between gap-2">
+                              <Link
+                                href={productLink}
+                                className="font-medium text-gray-900 hover:text-sky-600 transition-colors text-sm line-clamp-2"
+                              >
+                                {item.title}
+                              </Link>
+                              <button
+                                onClick={() => removeItem(item.productId, item.size)}
+                                className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                                aria-label="Удалить"
+                              >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                            {item.size && item.size !== 'Стандарт' && (
+                              <p className="text-xs text-gray-500 mt-1">Размер: {item.size}</p>
+                            )}
+                            
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => updateQuantity(item.productId, item.size, item.quantity - 1)}
+                                  className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                                  disabled={item.quantity <= 1}
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                                  </svg>
+                                </button>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="9999"
+                                  value={item.quantity}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value, 10);
+                                    if (!isNaN(val) && val >= 1) {
+                                      updateQuantity(item.productId, item.size, Math.min(val, 9999));
+                                    }
+                                  }}
+                                  className="w-12 text-center text-sm font-semibold border border-gray-200 rounded-lg py-1 focus:ring-2 focus:ring-primary focus:border-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <button
+                                  onClick={() => updateQuantity(item.productId, item.size, item.quantity + 1)}
+                                  className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                                >
+                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                </button>
+                              </div>
+
+                              <div className="text-right">
+                                <p className="text-sm text-gray-500">{formatPrice(item.price)} ₽ × {item.quantity}</p>
+                                <p className="font-semibold text-gray-900">{formatPrice(item.price * item.quantity)} ₽</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Выбор способа получения для этого магазина (только в режиме оформления) */}
+                {isCheckout && partsDelivery[group.store.slug] && (
+                  <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    <h3 className="font-medium text-gray-900 mb-3">Способ получения для {group.store.shortName}:</h3>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateStoreDelivery(group.store.slug, 'deliveryType', 'pickup')}
+                          className={`flex-1 py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                            partsDelivery[group.store.slug].deliveryType === 'pickup'
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          <span className="block">🏪 Самовывоз</span>
+                          <span className="block text-xs opacity-70 mt-0.5">{group.store.address}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateStoreDelivery(group.store.slug, 'deliveryType', 'delivery')}
+                          className={`flex-1 py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                            partsDelivery[group.store.slug].deliveryType === 'delivery'
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                          }`}
+                        >
+                          <span className="block">🚚 Доставка</span>
+                          <span className="block text-xs opacity-70 mt-0.5">По адресу</span>
+                        </button>
+                      </div>
+
+                      {partsDelivery[group.store.slug].deliveryType === 'delivery' && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={partsDelivery[group.store.slug].address}
+                            onChange={(e) => updateStoreDelivery(group.store.slug, 'address', e.target.value)}
+                            placeholder="Адрес доставки *"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                          />
+                          <input
+                            type="text"
+                            value={partsDelivery[group.store.slug].comment}
+                            onChange={(e) => updateStoreDelivery(group.store.slug, 'comment', e.target.value)}
+                            placeholder="Комментарий к доставке (необязательно)"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                          />
+                        </div>
+                      )}
+
+                      {partsDelivery[group.store.slug].deliveryType === 'pickup' && group.store.workingHours && (
+                        <div className="text-xs text-gray-500 bg-white rounded-lg p-2">
+                          <p>🕐 Часы работы:</p>
+                          <p>Пн-Сб: {group.store.workingHours.monSat}</p>
+                          <p>Вс: {group.store.workingHours.sun}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
 
             {/* Кнопка очистки */}
             <button
@@ -374,6 +563,18 @@ export default function CartPage() {
               {!isCheckout ? (
                 <>
                   <h2 className="text-xl font-bold text-gray-900 mb-4">Итого</h2>
+                  
+                  {/* Информация о магазинах */}
+                  {storeGroups.length > 1 && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-600">⚠️</span>
+                        <p className="text-sm text-amber-800">
+                          Товары из {storeGroups.length} магазинов. При оформлении вы сможете выбрать способ получения для каждого отдельно.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Купон */}
                   <div className="mb-6">
@@ -435,13 +636,15 @@ export default function CartPage() {
                   </div>
                   
                   <div className="space-y-3 mb-6">
-                    <div className="flex justify-between text-gray-600">
+                    {storeGroups.map(group => (
+                      <div key={group.store.slug} className="flex justify-between text-sm text-gray-600">
+                        <span>{group.store.shortName}:</span>
+                        <span>{formatPrice(group.subtotal)} ₽</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between text-gray-600 pt-2 border-t border-gray-100">
                       <span>Товаров:</span>
                       <span>{totalItems} шт.</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Сумма:</span>
-                      <span>{formatPrice(totalAmount)} ₽</span>
                     </div>
                     {appliedCoupon && discountAmount > 0 && (
                       <div className="flex justify-between text-green-600">
@@ -518,67 +721,16 @@ export default function CartPage() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Способ получения
-                      </label>
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'pickup_rybinskaya' }))}
-                            className={`py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-colors ${
-                              orderData.delivery === 'pickup_rybinskaya'
-                                ? 'border-primary bg-primary/5 text-primary'
-                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}
-                          >
-                            <span className="block">Самовывоз</span>
-                            <span className="block text-xs opacity-70">ул. Рыбинская 25Н</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'pickup_svobody' }))}
-                            className={`py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-colors ${
-                              orderData.delivery === 'pickup_svobody'
-                                ? 'border-primary bg-primary/5 text-primary'
-                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}
-                          >
-                            <span className="block">Самовывоз</span>
-                            <span className="block text-xs opacity-70">пл. Свободы 14К</span>
-                          </button>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'delivery' }))}
-                          className={`w-full py-2.5 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
-                            orderData.delivery === 'delivery'
-                              ? 'border-primary bg-primary/5 text-primary'
-                              : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                          }`}
-                        >
-                          🚚 Доставка по адресу
-                        </button>
-                      </div>
+                    {/* Информация о способах получения */}
+                    <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                      <p className="text-sm text-sky-800 font-medium mb-1">📦 Способ получения</p>
+                      <p className="text-xs text-sky-700">
+                        {storeGroups.length > 1 
+                          ? 'Выберите способ получения для каждого магазина в списке товаров выше'
+                          : 'Выберите способ получения в списке товаров выше'
+                        }
+                      </p>
                     </div>
-
-                    {orderData.delivery === 'delivery' && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Адрес доставки *
-                        </label>
-                        <input
-                          type="text"
-                          name="address"
-                          value={orderData.address}
-                          onChange={handleInputChange}
-                          required={orderData.delivery === 'delivery'}
-                          className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                          placeholder="ул. Ленина, д. 1, кв. 1"
-                        />
-                      </div>
-                    )}
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -597,7 +749,7 @@ export default function CartPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Комментарий
+                        Комментарий к заказу
                       </label>
                       <textarea
                         name="comment"
@@ -611,6 +763,24 @@ export default function CartPage() {
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-gray-100">
+                    {/* Сводка по способам получения */}
+                    <div className="mb-4 space-y-2">
+                      {storeGroups.map(group => {
+                        const delivery = partsDelivery[group.store.slug];
+                        return (
+                          <div key={group.store.slug} className="text-sm">
+                            <span className="font-medium text-gray-700">{group.store.shortName}:</span>
+                            <span className="text-gray-600 ml-2">
+                              {delivery?.deliveryType === 'delivery' 
+                                ? `🚚 Доставка${delivery.address ? ` - ${delivery.address}` : ''}`
+                                : `🏪 Самовывоз - ${group.store.address}`
+                              }
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-gray-600">
                         <span>Сумма:</span>
@@ -620,6 +790,12 @@ export default function CartPage() {
                         <div className="flex justify-between text-green-600">
                           <span>Скидка ({appliedCoupon.code}):</span>
                           <span>-{formatPrice(discountAmount)} ₽</span>
+                        </div>
+                      )}
+                      {hasDelivery && (
+                        <div className="flex justify-between text-gray-500 text-sm">
+                          <span>Доставка:</span>
+                          <span>рассчитывается отдельно</span>
                         </div>
                       )}
                       <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-100">

@@ -220,6 +220,9 @@ export default function MaterialCalculator({
       subCategory: subCat,
       categorySlug: selectedProduct.categorySlug,
       subcategorySlug: selectedProduct.subcategorySlug,
+      storeId: 1,
+      storeSlug: 'rybinskaya',
+      storeName: 'Рыбинская',
     });
     
     setAddedToCart(true);

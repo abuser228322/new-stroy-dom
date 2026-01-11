@@ -2,6 +2,22 @@
  * Типы для корзины и заказов
  */
 
+// ==================== МАГАЗИНЫ ====================
+
+export interface Store {
+  id: number;
+  slug: string;
+  name: string;
+  shortName?: string;
+  address: string;
+  phone?: string;
+  workingHours?: {
+    monSat: string;
+    sun: string;
+  };
+  assortmentDescription?: string;
+}
+
 // ==================== КОРЗИНА ====================
 
 export interface CartItem {
@@ -17,6 +33,9 @@ export interface CartItem {
   subCategory: string;
   categorySlug?: string;           // Slug категории для URL
   subcategorySlug?: string;        // Slug подкатегории для URL
+  storeId: number;                 // ID магазина
+  storeSlug: string;               // Slug магазина (rybinskaya, svobody)
+  storeName: string;               // Название магазина для отображения
 }
 
 export interface Cart {
@@ -27,23 +46,45 @@ export interface Cart {
 
 // ==================== ЗАКАЗЫ ====================
 
+// Данные о способе получения для одной части заказа (один магазин)
+export interface OrderPartDeliveryData {
+  storeId: number;
+  storeSlug: string;
+  deliveryType: 'pickup' | 'delivery';
+  deliveryAddress?: string;
+  deliveryComment?: string;
+}
+
 export interface OrderFormData {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
-  deliveryType: 'pickup_rybinskaya' | 'pickup_svobody' | 'delivery';
-  deliveryAddress?: string;
-  deliveryComment?: string;
   paymentMethod: 'cash' | 'card' | 'online';
   customerComment?: string;
   couponCode?: string;
+  // Данные доставки для каждого магазина
+  partsDelivery: OrderPartDeliveryData[];
+}
+
+export interface OrderPart {
+  id: number;
+  storeId: number;
+  store?: Store;
+  deliveryType: 'pickup' | 'delivery';
+  deliveryAddress?: string | null;
+  deliveryComment?: string | null;
+  subtotal: number;
+  deliveryPrice: number;
+  partStatus: OrderStatusType;
+  items: OrderItem[];
 }
 
 export interface Order {
   id: number;
   orderNumber: string;
   status: OrderStatusType;
-  items: OrderItem[];
+  parts: OrderPart[];
+  items: OrderItem[];  // Все items для обратной совместимости
   subtotal: number;
   discount: number;
   deliveryPrice: number;
@@ -51,8 +92,6 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerEmail?: string | null;
-  deliveryType: DeliveryTypeValue;
-  deliveryAddress?: string | null;
   paymentMethod: PaymentMethodValue;
   createdAt: string | Date;
   updatedAt?: string | Date;
@@ -69,6 +108,8 @@ export interface OrderItem {
   size?: string | null;
   unit?: string | null;
   total: number;
+  storeId?: number;
+  store?: Store;
 }
 
 // Типы статусов
@@ -82,9 +123,8 @@ export type OrderStatusType =
   | 'cancelled';   // Отменён
 
 export type DeliveryTypeValue = 
-  | 'pickup_rybinskaya'  // Самовывоз Рыбинская
-  | 'pickup_svobody'     // Самовывоз Свободы
-  | 'delivery';          // Доставка
+  | 'pickup'    // Самовывоз
+  | 'delivery'; // Доставка
 
 export type PaymentMethodValue = 
   | 'cash'    // Наличные

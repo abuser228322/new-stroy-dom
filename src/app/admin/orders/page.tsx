@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
+
+interface Store {
+  id: number;
+  slug: string;
+  name: string;
+  shortName: string;
+  address: string;
+}
 
 interface OrderItem {
   id: number;
@@ -13,6 +20,21 @@ interface OrderItem {
   size: string | null;
   unit: string | null;
   total: string;
+  storeId: number | null;
+}
+
+interface OrderPart {
+  id: number;
+  orderId: number;
+  storeId: number;
+  deliveryType: string;
+  deliveryAddress: string | null;
+  deliveryComment: string | null;
+  subtotal: string;
+  deliveryPrice: string;
+  partStatus: string;
+  store: Store;
+  items: OrderItem[];
 }
 
 interface User {
@@ -32,10 +54,7 @@ interface Order {
   customerPhone: string;
   customerEmail: string | null;
   status: string;
-  deliveryType: string;
   paymentMethod: string;
-  deliveryAddress: string | null;
-  deliveryComment: string | null;
   subtotal: string;
   deliveryPrice: string;
   discount: string;
@@ -49,6 +68,7 @@ interface Order {
   cancelledAt: string | null;
   cancelReason: string | null;
   items: OrderItem[];
+  parts?: OrderPart[];
   user: User | null;
 }
 
@@ -80,9 +100,11 @@ const STATUS_OPTIONS = [
 ];
 
 const DELIVERY_LABELS: Record<string, string> = {
-  pickup_rybinskaya: 'Рыбинская 25Н',
-  pickup_svobody: 'пл. Свободы 14К',
+  pickup: 'Самовывоз',
   delivery: 'Доставка',
+  // Легаси поддержка
+  pickup_rybinskaya: 'Самовывоз (Рыбинская)',
+  pickup_svobody: 'Самовывоз (пл. Свободы)',
 };
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -313,7 +335,18 @@ export default function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {DELIVERY_LABELS[order.deliveryType]}
+                      {order.parts && order.parts.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {order.parts.map((part: OrderPart, idx: number) => (
+                            <div key={idx} className="flex items-center gap-1">
+                              <span className="text-xs text-gray-400">{part.store?.shortName || 'Магазин'}:</span>
+                              <span className="text-xs">{part.deliveryType === 'delivery' ? '🚚' : '🏪'}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-900">
                       {formatPrice(order.total)} ₽
@@ -413,7 +446,7 @@ export default function AdminOrdersPage() {
                         Готов
                       </button>
                     )}
-                    {selectedOrder.status === 'ready' && selectedOrder.deliveryType === 'delivery' && (
+                    {selectedOrder.status === 'ready' && selectedOrder.parts?.some(p => p.deliveryType === 'delivery') && (
                       <button
                         onClick={() => updateOrderStatus(selectedOrder.id, 'delivering')}
                         disabled={updating}
@@ -482,15 +515,34 @@ export default function AdminOrdersPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Получение</h3>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="font-medium text-gray-900">{DELIVERY_LABELS[selectedOrder.deliveryType]}</p>
-                    {selectedOrder.deliveryAddress && (
-                      <p className="text-gray-600 mt-1 text-sm">{selectedOrder.deliveryAddress}</p>
-                    )}
-                    {selectedOrder.deliveryComment && (
-                      <p className="text-gray-500 mt-1 text-sm">{selectedOrder.deliveryComment}</p>
-                    )}
-                  </div>
+                  {selectedOrder.parts && selectedOrder.parts.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedOrder.parts.map((part) => (
+                        <div key={part.id} className="bg-gray-50 rounded-xl p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-lg">{part.deliveryType === 'delivery' ? '🚚' : '🏪'}</span>
+                            <span className="font-medium text-gray-900 text-sm">{part.store?.name || 'Магазин'}</span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {part.deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз'}
+                          </p>
+                          {part.deliveryAddress && (
+                            <p className="text-gray-500 text-xs mt-1">{part.deliveryAddress}</p>
+                          )}
+                          {part.deliveryComment && (
+                            <p className="text-gray-400 text-xs mt-1 italic">{part.deliveryComment}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            {part.items?.length || 0} товар(ов) · {formatPrice(part.subtotal)} ₽
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-sm">Информация о получении недоступна</p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Оплата</h3>
@@ -506,27 +558,62 @@ export default function AdminOrdersPage() {
               {/* Товары */}
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Товары</h3>
-                <div className="bg-gray-50 rounded-xl overflow-hidden">
-                  {selectedOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-0">
-                      <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden shrink-0">
-                        {item.image && (
-                          <img src={item.image} alt="" className="w-full h-full object-cover" />
-                        )}
+                {selectedOrder.parts && selectedOrder.parts.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedOrder.parts.map((part) => (
+                      <div key={part.id} className="bg-gray-50 rounded-xl overflow-hidden">
+                        <div className="bg-gray-100 px-3 py-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{part.deliveryType === 'delivery' ? '🚚' : '🏪'}</span>
+                            <span className="text-sm font-medium text-gray-700">{part.store?.name || 'Магазин'}</span>
+                          </div>
+                          <span className="text-xs text-gray-500">{formatPrice(part.subtotal)} ₽</span>
+                        </div>
+                        {part.items?.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-0">
+                            <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+                              {item.image && (
+                                <img src={item.image} alt="" className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 text-sm truncate">{item.title}</p>
+                              <p className="text-xs text-gray-500">
+                                {item.quantity} {item.unit || 'шт'} × {formatPrice(item.price)} ₽
+                                {item.size && ` · ${item.size}`}
+                              </p>
+                            </div>
+                            <p className="font-medium text-gray-900 shrink-0">
+                              {formatPrice(item.total)} ₽
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm truncate">{item.title}</p>
-                        <p className="text-xs text-gray-500">
-                          {item.quantity} {item.unit || 'шт'} × {formatPrice(item.price)} ₽
-                          {item.size && ` · ${item.size}`}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-xl overflow-hidden">
+                    {selectedOrder.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-0">
+                        <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+                          {item.image && (
+                            <img src={item.image} alt="" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 text-sm truncate">{item.title}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.quantity} {item.unit || 'шт'} × {formatPrice(item.price)} ₽
+                            {item.size && ` · ${item.size}`}
+                          </p>
+                        </div>
+                        <p className="font-medium text-gray-900 shrink-0">
+                          {formatPrice(item.total)} ₽
                         </p>
                       </div>
-                      <p className="font-medium text-gray-900 shrink-0">
-                        {formatPrice(item.total)} ₽
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
               
               {/* Итого */}

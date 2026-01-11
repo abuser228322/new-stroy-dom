@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { orders, orderItems, products, coupons, couponUsages } from "@/lib/db/schema";
+import { orders, orderItems, orderParts, stores, coupons, couponUsages } from "@/lib/db/schema";
 import { desc, eq, and } from "drizzle-orm";
 import { validateSession } from "@/lib/auth";
+
+// Типы для cartItems
+interface CartItemInput {
+  productId?: string;
+  urlId: string;
+  title: string;
+  image?: string | null;
+  price: number;
+  quantity: number;
+  size?: string | null;
+  unit?: string | null;
+  storeId?: number;
+  storeSlug?: string;
+}
+
+interface PartDeliveryInput {
+  storeId: number;
+  storeSlug: string;
+  deliveryType: 'pickup' | 'delivery';
+  deliveryAddress?: string;
+  deliveryComment?: string;
+}
 
 // Генерация номера заказа
 function generateOrderNumber(): string {
@@ -32,6 +54,12 @@ export async function GET(request: NextRequest) {
       where: eq(orders.userId, user.id),
       orderBy: [desc(orders.createdAt)],
       with: {
+        parts: {
+          with: {
+            store: true,
+            items: true,
+          },
+        },
         items: true,
       },
     });
@@ -51,12 +79,10 @@ export async function POST(request: NextRequest) {
       customerName,
       customerPhone,
       customerEmail,
-      deliveryType,
       paymentMethod,
-      deliveryAddress,
-      deliveryComment,
       customerComment,
       couponCode,
+      partsDelivery, // Новое: массив с данными о доставке для каждого магазина
       items: cartItems,
     } = body;
     
@@ -67,14 +93,14 @@ export async function POST(request: NextRequest) {
     if (!customerPhone?.trim()) {
       return NextResponse.json({ error: "Укажите телефон" }, { status: 400 });
     }
-    if (!deliveryType) {
-      return NextResponse.json({ error: "Выберите способ получения" }, { status: 400 });
-    }
     if (!paymentMethod) {
       return NextResponse.json({ error: "Выберите способ оплаты" }, { status: 400 });
     }
     if (!cartItems || cartItems.length === 0) {
       return NextResponse.json({ error: "Корзина пуста" }, { status: 400 });
+    }
+    if (!partsDelivery || partsDelivery.length === 0) {
+      return NextResponse.json({ error: "Укажите способ получения" }, { status: 400 });
     }
     
     // Проверяем авторизацию (опционально)
@@ -87,34 +113,61 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Рассчитываем сумму товаров
-    let subtotal = 0;
-    const orderItemsData: Array<{
-      urlId: string;
-      title: string;
-      image: string | null;
-      quantity: number;
-      price: number;
-      size: string | null;
-      unit: string | null;
-      total: number;
-      productId: number | null;
+    // Загружаем магазины
+    const allStores = await db.select().from(stores);
+    const storeMap = new Map(allStores.map(s => [s.slug, s]));
+    
+    // Типизируем cartItems
+    const typedCartItems = cartItems as CartItemInput[];
+    const typedPartsDelivery = partsDelivery as PartDeliveryInput[];
+    
+    // Группируем товары по магазинам
+    const itemsByStore: Record<string, CartItemInput[]> = {};
+    for (const item of typedCartItems) {
+      const storeSlug = item.storeSlug || 'rybinskaya';
+      if (!itemsByStore[storeSlug]) {
+        itemsByStore[storeSlug] = [];
+      }
+      itemsByStore[storeSlug].push(item);
+    }
+    
+    // Рассчитываем сумму товаров по частям
+    let totalSubtotal = 0;
+    let totalDeliveryPrice = 0;
+    
+    const partsData: Array<{
+      storeSlug: string;
+      storeId: number;
+      deliveryType: 'pickup' | 'delivery';
+      deliveryAddress: string | null;
+      deliveryComment: string | null;
+      subtotal: number;
+      deliveryPrice: number;
+      items: CartItemInput[];
     }> = [];
     
-    for (const item of cartItems) {
-      const itemTotal = item.price * item.quantity;
-      subtotal += itemTotal;
+    for (const partDelivery of typedPartsDelivery) {
+      const store = storeMap.get(partDelivery.storeSlug);
+      if (!store) {
+        return NextResponse.json({ error: `Магазин ${partDelivery.storeSlug} не найден` }, { status: 400 });
+      }
       
-      orderItemsData.push({
-        urlId: item.urlId,
-        title: item.title,
-        image: item.image || null,
-        quantity: item.quantity,
-        price: item.price,
-        size: item.size || null,
-        unit: item.unit || null,
-        total: itemTotal,
-        productId: item.productId ? parseInt(item.productId, 10) : null,
+      const storeItems = itemsByStore[partDelivery.storeSlug] || [];
+      const partSubtotal = storeItems.reduce((sum: number, item: CartItemInput) => sum + item.price * item.quantity, 0);
+      const partDeliveryPrice = partDelivery.deliveryType === 'delivery' ? 500 : 0; // Можно настроить
+      
+      totalSubtotal += partSubtotal;
+      totalDeliveryPrice += partDeliveryPrice;
+      
+      partsData.push({
+        storeSlug: partDelivery.storeSlug,
+        storeId: store.id,
+        deliveryType: partDelivery.deliveryType,
+        deliveryAddress: partDelivery.deliveryType === 'delivery' ? (partDelivery.deliveryAddress?.trim() || null) : null,
+        deliveryComment: partDelivery.deliveryComment?.trim() || null,
+        subtotal: partSubtotal,
+        deliveryPrice: partDeliveryPrice,
+        items: storeItems,
       });
     }
     
@@ -131,19 +184,16 @@ export async function POST(request: NextRequest) {
       });
       
       if (coupon) {
-        // Проверяем срок действия
         const now = new Date();
         if ((!coupon.startDate || new Date(coupon.startDate) <= now) &&
             (!coupon.endDate || new Date(coupon.endDate) >= now)) {
           
-          // Проверяем минимальную сумму
-          if (!coupon.minOrderAmount || subtotal >= parseFloat(coupon.minOrderAmount)) {
-            // Проверяем лимит использования
+          if (!coupon.minOrderAmount || totalSubtotal >= parseFloat(coupon.minOrderAmount)) {
             if (!coupon.usageLimit || (coupon.usageCount || 0) < coupon.usageLimit) {
               couponId = coupon.id;
               
               if (coupon.discountType === "percent") {
-                discount = subtotal * (parseFloat(coupon.discountValue) / 100);
+                discount = totalSubtotal * (parseFloat(coupon.discountValue) / 100);
                 if (coupon.maxDiscountAmount) {
                   discount = Math.min(discount, parseFloat(coupon.maxDiscountAmount));
                 }
@@ -156,11 +206,8 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Стоимость доставки (можно настроить)
-    const deliveryPrice = deliveryType === "delivery" ? 500 : 0;
-    
     // Итоговая сумма
-    const total = subtotal - discount + deliveryPrice;
+    const total = totalSubtotal - discount + totalDeliveryPrice;
     
     // Генерируем номер заказа
     const orderNumber = generateOrderNumber();
@@ -173,12 +220,9 @@ export async function POST(request: NextRequest) {
       customerPhone: customerPhone.trim(),
       customerEmail: customerEmail?.trim() || null,
       status: "pending",
-      deliveryType,
       paymentMethod,
-      deliveryAddress: deliveryType === "delivery" ? deliveryAddress?.trim() : null,
-      deliveryComment: deliveryComment?.trim() || null,
-      subtotal: subtotal.toFixed(2),
-      deliveryPrice: deliveryPrice.toFixed(2),
+      subtotal: totalSubtotal.toFixed(2),
+      deliveryPrice: totalDeliveryPrice.toFixed(2),
       discount: discount.toFixed(2),
       total: total.toFixed(2),
       couponId,
@@ -186,28 +230,47 @@ export async function POST(request: NextRequest) {
       customerComment: customerComment?.trim() || null,
     }).returning();
     
-    // Добавляем позиции заказа
-    await db.insert(orderItems).values(
-      orderItemsData.map(item => ({
+    // Создаём части заказа и позиции
+    for (const partData of partsData) {
+      // Создаём часть заказа
+      const [newPart] = await db.insert(orderParts).values({
         orderId: newOrder.id,
-        productId: item.productId,
-        urlId: item.urlId,
-        title: item.title,
-        image: item.image,
-        quantity: item.quantity,
-        price: item.price.toFixed(2),
-        size: item.size,
-        unit: item.unit,
-        total: item.total.toFixed(2),
-      }))
-    );
+        storeId: partData.storeId,
+        deliveryType: partData.deliveryType,
+        deliveryAddress: partData.deliveryAddress,
+        deliveryComment: partData.deliveryComment,
+        subtotal: partData.subtotal.toFixed(2),
+        deliveryPrice: partData.deliveryPrice.toFixed(2),
+        partStatus: "pending",
+      }).returning();
+      
+      // Добавляем позиции для этой части
+      if (partData.items.length > 0) {
+        await db.insert(orderItems).values(
+          partData.items.map((item: CartItemInput) => ({
+            orderId: newOrder.id,
+            orderPartId: newPart.id,
+            productId: item.productId ? parseInt(item.productId, 10) : null,
+            storeId: partData.storeId,
+            urlId: item.urlId,
+            title: item.title,
+            image: item.image || null,
+            quantity: item.quantity,
+            price: item.price.toFixed(2),
+            size: item.size || null,
+            unit: item.unit || null,
+            total: (item.price * item.quantity).toFixed(2),
+          }))
+        );
+      }
+    }
     
     // Записываем использование купона
     if (couponId && userId) {
       await db.insert(couponUsages).values({
         couponId,
         userId,
-        orderAmount: subtotal.toFixed(2),
+        orderAmount: totalSubtotal.toFixed(2),
         discountAmount: discount.toFixed(2),
       });
       
@@ -218,10 +281,16 @@ export async function POST(request: NextRequest) {
         .where(eq(coupons.id, couponId));
     }
     
-    // Возвращаем созданный заказ
+    // Возвращаем созданный заказ с частями
     const createdOrder = await db.query.orders.findFirst({
       where: eq(orders.id, newOrder.id),
       with: {
+        parts: {
+          with: {
+            store: true,
+            items: true,
+          },
+        },
         items: true,
       },
     });

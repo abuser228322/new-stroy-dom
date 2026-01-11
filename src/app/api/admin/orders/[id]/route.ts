@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { orders, orderItems } from "@/lib/db/schema";
+import { orders, orderItems, orderParts } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdmin, authErrorResponse } from "@/lib/auth-utils";
 
@@ -24,6 +24,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, orderId),
       with: {
+        parts: {
+          with: {
+            store: true,
+            items: {
+              with: {
+                product: true,
+              },
+            },
+          },
+        },
         items: {
           with: {
             product: true,
@@ -157,6 +167,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     
     // Сначала удаляем позиции заказа
     await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    // Затем части заказа
+    await db.delete(orderParts).where(eq(orderParts.orderId, orderId));
     // Затем сам заказ
     await db.delete(orders).where(eq(orders.id, orderId));
     

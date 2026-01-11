@@ -15,10 +15,10 @@ export const orderStatusEnum = pgEnum("order_status", [
   "cancelled",    // Отменён
 ]);
 
+// Упрощённый enum для способа получения (без привязки к магазину)
 export const deliveryTypeEnum = pgEnum("delivery_type", [
-  "pickup_rybinskaya",  // Самовывоз Рыбинская 25Н
-  "pickup_svobody",     // Самовывоз пл. Свободы 14К
-  "delivery",           // Доставка
+  "pickup",    // Самовывоз (магазин определяется из orderPart.storeId)
+  "delivery",  // Доставка
 ]);
 
 export const paymentMethodEnum = pgEnum("payment_method", [
@@ -26,6 +26,38 @@ export const paymentMethodEnum = pgEnum("payment_method", [
   "card",       // Картой при получении
   "online",     // Онлайн оплата
 ]);
+
+// ==================== МАГАЗИНЫ ====================
+
+export const stores = pgTable("stores", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(), // rybinskaya, svobody
+  name: varchar("name", { length: 255 }).notNull(), // Рыбинская 25Н
+  shortName: varchar("short_name", { length: 100 }), // Рыбинская
+  address: varchar("address", { length: 500 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  
+  // Часы работы
+  workingHours: jsonb("working_hours").$type<{
+    monSat: string;  // "08:00-16:00"
+    sun: string;     // "08:00-14:00"
+  }>(),
+  
+  // Координаты для карты
+  latitude: numeric("latitude", { precision: 10, scale: 7 }),
+  longitude: numeric("longitude", { precision: 10, scale: 7 }),
+  
+  // Описание ассортимента
+  assortmentDescription: text("assortment_description"), // "Стройматериалы, смеси, профили..."
+  
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type Store = typeof stores.$inferSelect;
+export type NewStore = typeof stores.$inferInsert;
 
 // ==================== КАЛЬКУЛЯТОР МАТЕРИАЛОВ ====================
 
@@ -230,6 +262,9 @@ export const products = pgTable("products", {
   categoryId: integer("category_id").notNull().references(() => categories.id),
   subcategoryId: integer("subcategory_id").notNull().references(() => subcategories.id),
   
+  // Связь с магазином
+  storeId: integer("store_id").references(() => stores.id), // null = все магазины (legacy)
+  
   // Цены
   price: numeric("price", { precision: 10, scale: 2 }), // Фиксированная цена
   pricesBySize: jsonb("prices_by_size"), // {"1.5м": 800, "2м": 1000}
@@ -280,6 +315,17 @@ export const productsRelations = relations(products, ({ one }) => ({
     fields: [products.subcategoryId],
     references: [subcategories.id],
   }),
+  store: one(stores, {
+    fields: [products.storeId],
+    references: [stores.id],
+  }),
+}));
+
+// ==================== STORE RELATIONS ====================
+
+export const storesRelations = relations(stores, ({ many }) => ({
+  products: many(products),
+  orderParts: many(orderParts),
 }));
 
 // ==================== ТИПЫ ====================
@@ -464,18 +510,15 @@ export const orders = pgTable("orders", {
   customerPhone: varchar("customer_phone", { length: 20 }).notNull(),
   customerEmail: varchar("customer_email", { length: 255 }),
   
-  // Статус и способы
+  // Статус заказа (общий)
   status: orderStatusEnum("status").default("pending").notNull(),
-  deliveryType: deliveryTypeEnum("delivery_type").notNull(),
-  paymentMethod: paymentMethodEnum("payment_method").notNull(),
   
-  // Адрес доставки (если доставка)
-  deliveryAddress: text("delivery_address"),
-  deliveryComment: text("delivery_comment"),
+  // Способ оплаты (один на весь заказ)
+  paymentMethod: paymentMethodEnum("payment_method").notNull(),
   
   // Суммы
   subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(), // Сумма товаров
-  deliveryPrice: numeric("delivery_price", { precision: 10, scale: 2 }).default("0"), // Стоимость доставки
+  deliveryPrice: numeric("delivery_price", { precision: 10, scale: 2 }).default("0"), // Общая стоимость доставки
   discount: numeric("discount", { precision: 10, scale: 2 }).default("0"), // Скидка
   total: numeric("total", { precision: 10, scale: 2 }).notNull(), // Итого
   
@@ -497,12 +540,43 @@ export const orders = pgTable("orders", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const orderItems = pgTable("order_items", {
+// ==================== ЧАСТИ ЗАКАЗА (ПО МАГАЗИНАМ) ====================
+
+export const orderParts = pgTable("order_parts", {
   id: serial("id").primaryKey(),
   orderId: integer("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
   
+  // Магазин этой части заказа
+  storeId: integer("store_id").notNull().references(() => stores.id),
+  
+  // Способ получения для этой части
+  deliveryType: deliveryTypeEnum("delivery_type").notNull(), // pickup или delivery
+  
+  // Адрес доставки (только если deliveryType = delivery)
+  deliveryAddress: text("delivery_address"),
+  deliveryComment: text("delivery_comment"),
+  
+  // Суммы этой части
+  subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
+  deliveryPrice: numeric("delivery_price", { precision: 10, scale: 2 }).default("0"),
+  
+  // Статус этой части (может отличаться от общего статуса заказа)
+  partStatus: orderStatusEnum("part_status").default("pending").notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  orderPartId: integer("order_part_id").notNull().references(() => orderParts.id, { onDelete: "cascade" }),
+  
   // Товар (может быть null если товар удалён)
   productId: integer("product_id").references(() => products.id),
+  
+  // Магазин товара (дублируем для быстрого доступа)
+  storeId: integer("store_id").references(() => stores.id),
   
   // Данные товара на момент заказа (сохраняем для истории)
   urlId: varchar("url_id", { length: 255 }).notNull(),
@@ -532,6 +606,19 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.couponId],
     references: [coupons.id],
   }),
+  parts: many(orderParts),
+  items: many(orderItems),
+}));
+
+export const orderPartsRelations = relations(orderParts, ({ one, many }) => ({
+  order: one(orders, {
+    fields: [orderParts.orderId],
+    references: [orders.id],
+  }),
+  store: one(stores, {
+    fields: [orderParts.storeId],
+    references: [stores.id],
+  }),
   items: many(orderItems),
 }));
 
@@ -540,9 +627,17 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     fields: [orderItems.orderId],
     references: [orders.id],
   }),
+  orderPart: one(orderParts, {
+    fields: [orderItems.orderPartId],
+    references: [orderParts.id],
+  }),
   product: one(products, {
     fields: [orderItems.productId],
     references: [products.id],
+  }),
+  store: one(stores, {
+    fields: [orderItems.storeId],
+    references: [stores.id],
   }),
 }));
 
@@ -550,6 +645,9 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
+
+export type OrderPart = typeof orderParts.$inferSelect;
+export type NewOrderPart = typeof orderParts.$inferInsert;
 
 export type OrderItem = typeof orderItems.$inferSelect;
 export type NewOrderItem = typeof orderItems.$inferInsert;
