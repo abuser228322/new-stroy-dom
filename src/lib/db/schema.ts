@@ -549,8 +549,8 @@ export const orderParts = pgTable("order_parts", {
   // Магазин этой части заказа
   storeId: integer("store_id").notNull().references(() => stores.id),
   
-  // Способ получения для этой части
-  deliveryType: deliveryTypeEnum("delivery_type").notNull(), // pickup или delivery
+  // Способ получения для этой части (text в БД для совместимости)
+  deliveryType: text("delivery_type").notNull(), // pickup или delivery
   
   // Адрес доставки (только если deliveryType = delivery)
   deliveryAddress: text("delivery_address"),
@@ -570,7 +570,7 @@ export const orderParts = pgTable("order_parts", {
 export const orderItems = pgTable("order_items", {
   id: serial("id").primaryKey(),
   orderId: integer("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
-  orderPartId: integer("order_part_id").notNull().references(() => orderParts.id, { onDelete: "cascade" }),
+  orderPartId: integer("order_part_id").references(() => orderParts.id, { onDelete: "cascade" }),
   
   // Товар (может быть null если товар удалён)
   productId: integer("product_id").references(() => products.id),

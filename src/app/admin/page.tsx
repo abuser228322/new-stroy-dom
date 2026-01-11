@@ -275,6 +275,36 @@ export default function AdminPage() {
             </div>
           </div>
         </Link>
+
+        {/* Карточка магазинов */}
+        <Link href="/admin/stores" className="block">
+          <div className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-8 w-8 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Магазины
+                    </dt>
+                    <dd className="text-lg font-semibold text-gray-900">
+                      Точки продаж
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-5 py-3">
+              <div className="text-sm text-rose-600 font-medium">
+                Графики и адреса →
+              </div>
+            </div>
+          </div>
+        </Link>
       </div>
     </div>
   );
