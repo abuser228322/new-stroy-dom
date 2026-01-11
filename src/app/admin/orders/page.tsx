@@ -180,6 +180,31 @@ export default function AdminOrdersPage() {
     }
   };
   
+  const deleteOrder = async (orderId: number) => {
+    if (!confirm('Вы уверены, что хотите удалить этот заказ? Это действие нельзя отменить.')) return;
+    
+    setUpdating(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Ошибка удаления');
+      }
+      
+      // Закрываем модалку и обновляем список
+      setIsModalOpen(false);
+      setSelectedOrder(null);
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ошибка');
+    } finally {
+      setUpdating(false);
+    }
+  };
+  
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ru-RU', {
       day: '2-digit',
@@ -420,6 +445,16 @@ export default function AdminOrdersPage() {
                     </button>
                   </div>
                 )}
+                {/* Кнопка удаления */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => deleteOrder(selectedOrder.id)}
+                    disabled={updating}
+                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 disabled:opacity-50"
+                  >
+                    🗑 Удалить заказ
+                  </button>
+                </div>
               </div>
               
               {/* Покупатель */}

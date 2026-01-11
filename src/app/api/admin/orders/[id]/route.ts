@@ -155,14 +155,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Заказ не найден" }, { status: 404 });
     }
     
-    // Можно удалять только отменённые заказы
-    if (order.status !== "cancelled") {
-      return NextResponse.json(
-        { error: "Можно удалять только отменённые заказы" },
-        { status: 400 }
-      );
-    }
-    
+    // Сначала удаляем позиции заказа
+    await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    // Затем сам заказ
     await db.delete(orders).where(eq(orders.id, orderId));
     
     return NextResponse.json({ success: true });

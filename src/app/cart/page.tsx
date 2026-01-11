@@ -26,8 +26,8 @@ export default function CartPage() {
     email: '',
     address: '',
     comment: '',
-    delivery: 'pickup', // pickup | delivery
-    payment: 'cash', // cash | card | transfer
+    delivery: 'pickup_rybinskaya', // pickup_rybinskaya | pickup_svobody | delivery
+    payment: 'cash', // cash | card
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -164,27 +164,27 @@ export default function CartPage() {
   // Успешный заказ
   if (orderSuccess) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
-            <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
+        <div className="max-w-sm sm:max-w-md w-full mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8 text-center">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg shadow-emerald-500/30">
+            <svg className="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Заказ оформлен!</h1>
-          <p className="text-gray-600 mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">Заказ оформлен!</h1>
+          <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
             Спасибо за заказ. Мы свяжемся с вами в ближайшее время для подтверждения.
           </p>
           <div className="space-y-3">
             <Link
               href="/catalog"
-              className="block w-full py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-sky-600 hover:to-cyan-600 transition-all shadow-lg shadow-sky-500/30"
+              className="block w-full py-3 sm:py-4 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-sky-600 hover:to-cyan-600 transition-all shadow-lg shadow-sky-500/30 text-sm sm:text-base"
             >
               Продолжить покупки
             </Link>
             <Link
               href="/"
-              className="block w-full py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+              className="block w-full py-3 sm:py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm sm:text-base"
             >
               На главную
             </Link>
@@ -522,28 +522,43 @@ export default function CartPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Способ получения
                       </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'pickup' }))}
-                          className={`py-2.5 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
-                            orderData.delivery === 'pickup'
-                              ? 'border-primary bg-primary/5 text-primary'
-                              : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                          }`}
-                        >
-                          Самовывоз
-                        </button>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'pickup_rybinskaya' }))}
+                            className={`py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                              orderData.delivery === 'pickup_rybinskaya'
+                                ? 'border-primary bg-primary/5 text-primary'
+                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className="block">Самовывоз</span>
+                            <span className="block text-xs opacity-70">ул. Рыбинская 25Н</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'pickup_svobody' }))}
+                            className={`py-2.5 px-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                              orderData.delivery === 'pickup_svobody'
+                                ? 'border-primary bg-primary/5 text-primary'
+                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className="block">Самовывоз</span>
+                            <span className="block text-xs opacity-70">пл. Свободы 14К</span>
+                          </button>
+                        </div>
                         <button
                           type="button"
                           onClick={() => setOrderData((prev) => ({ ...prev, delivery: 'delivery' }))}
-                          className={`py-2.5 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
+                          className={`w-full py-2.5 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
                             orderData.delivery === 'delivery'
                               ? 'border-primary bg-primary/5 text-primary'
                               : 'border-gray-200 text-gray-600 hover:border-gray-300'
                           }`}
                         >
-                          Доставка
+                          🚚 Доставка по адресу
                         </button>
                       </div>
                     </div>
@@ -577,7 +592,6 @@ export default function CartPage() {
                       >
                         <option value="cash">Наличными</option>
                         <option value="card">Картой</option>
-                        <option value="transfer">Переводом</option>
                       </select>
                     </div>
 

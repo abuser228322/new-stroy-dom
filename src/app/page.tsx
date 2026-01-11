@@ -6,7 +6,6 @@ import PopularCategories from './components/PopularCategories';
 import StoreInfo from './components/StoreInfo';
 import ContactForm from './components/ContactForm';
 import MaterialCalculator from './components/MaterialCalculator';
-import { formatStoreHoursInline, isStoreOpenNow, RYBINSKAYA_HOURS, SVOBODY_HOURS, formatStoreHoursLines } from './lib/storeHours';
 import StoreStatusBadge from './components/StoreStatusBadge';
 import { LocalBusinessSchema } from './components/SchemaOrg';
 

@@ -1,9 +1,38 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
+
+interface OrderItem {
+  id: number;
+  title: string;
+  quantity: number;
+  price: string;
+  size: string | null;
+  total: string;
+}
+
+interface Order {
+  id: number;
+  orderNumber: string;
+  status: string;
+  deliveryType: string;
+  total: string;
+  createdAt: string;
+  items: OrderItem[];
+}
+
+const STATUS_LABELS: Record<string, { text: string; color: string }> = {
+  pending: { text: 'Ожидает', color: 'bg-yellow-100 text-yellow-800' },
+  confirmed: { text: 'Подтверждён', color: 'bg-blue-100 text-blue-800' },
+  processing: { text: 'В обработке', color: 'bg-indigo-100 text-indigo-800' },
+  ready: { text: 'Готов', color: 'bg-cyan-100 text-cyan-800' },
+  delivering: { text: 'Доставка', color: 'bg-purple-100 text-purple-800' },
+  completed: { text: 'Завершён', color: 'bg-green-100 text-green-800' },
+  cancelled: { text: 'Отменён', color: 'bg-red-100 text-red-800' },
+};
 
 function AccountContent() {
   const router = useRouter();
@@ -16,6 +45,11 @@ function AccountContent() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  
+  // Orders state
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
   
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -35,11 +69,43 @@ function AccountContent() {
     confirmPassword: '',
   });
   
+  // Загрузка заказов
+  const fetchOrders = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setOrdersLoading(true);
+    setOrdersError(null);
+    try {
+      const res = await fetch('/api/orders');
+      if (!res.ok) throw new Error('Ошибка загрузки заказов');
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      setOrdersError(err instanceof Error ? err.message : 'Ошибка');
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [isAuthenticated]);
+  
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/login?redirect=/account');
     }
   }, [isAuthenticated, isLoading, router]);
+  
+  // Обрабатываем параметр tab из URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'orders' || tab === 'security' || tab === 'profile') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+  
+  // Загружаем заказы при переходе на вкладку заказов
+  useEffect(() => {
+    if (activeTab === 'orders' && isAuthenticated) {
+      fetchOrders();
+    }
+  }, [activeTab, isAuthenticated, fetchOrders]);
   
   // Показываем модалку привязки Telegram для новых пользователей
   useEffect(() => {
@@ -544,20 +610,74 @@ function AccountContent() {
             
             {/* Вкладка заказов */}
             {activeTab === 'orders' && (
-              <div className="text-center py-12">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-slate-800 mb-2">Заказов пока нет</h3>
-                <p className="text-slate-500 mb-6">История ваших заказов появится здесь</p>
-                <Link
-                  href="/"
-                  className="inline-flex items-center px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-medium transition-colors"
-                >
-                  Перейти к покупкам
-                </Link>
+              <div>
+                {ordersLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sky-500"></div>
+                  </div>
+                ) : ordersError ? (
+                  <div className="text-center py-12 text-red-500">{ordersError}</div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-slate-800 mb-2">Заказов пока нет</h3>
+                    <p className="text-slate-500 mb-6">История ваших заказов появится здесь</p>
+                    <Link
+                      href="/catalog"
+                      className="inline-flex items-center px-6 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                      Перейти к покупкам
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {orders.map((order) => {
+                      const statusInfo = STATUS_LABELS[order.status] || { text: order.status, color: 'bg-gray-100 text-gray-800' };
+                      return (
+                        <div key={order.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                            <div>
+                              <span className="font-mono font-semibold text-slate-800">{order.orderNumber}</span>
+                              <span className="text-sm text-slate-500 ml-3">
+                                {new Date(order.createdAt).toLocaleDateString('ru-RU', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                              {statusInfo.text}
+                            </span>
+                          </div>
+                          <div className="text-sm text-slate-600 mb-2">
+                            {order.items.slice(0, 3).map((item, idx) => (
+                              <span key={item.id}>
+                                {item.title} × {item.quantity}
+                                {idx < Math.min(2, order.items.length - 1) ? ', ' : ''}
+                              </span>
+                            ))}
+                            {order.items.length > 3 && <span className="text-slate-400"> и ещё {order.items.length - 3}</span>}
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                            <span className="text-sm text-slate-500">
+                              {order.deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз'}
+                            </span>
+                            <span className="font-semibold text-slate-800">
+                              {new Intl.NumberFormat('ru-RU').format(Number(order.total))} ₽
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>

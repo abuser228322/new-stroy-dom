@@ -13,9 +13,12 @@ interface Coupon {
   maxDiscountAmount: number | null;
   usageLimit: number | null;
   usedCount: number;
+  usagePerUser: number;
   userUsageLimit: number;
   validFrom: string | null;
   validUntil: string | null;
+  startDate: string | null;
+  endDate: string | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -376,9 +379,9 @@ function CouponModal({
     minOrderAmount: coupon?.minOrderAmount || '',
     maxDiscountAmount: coupon?.maxDiscountAmount || '',
     usageLimit: coupon?.usageLimit || '',
-    userUsageLimit: coupon?.userUsageLimit || 1,
-    validFrom: coupon?.validFrom ? coupon.validFrom.split('T')[0] : '',
-    validUntil: coupon?.validUntil ? coupon.validUntil.split('T')[0] : '',
+    usagePerUser: coupon?.userUsageLimit || 1,
+    startDate: coupon?.validFrom ? coupon.validFrom.split('T')[0] : '',
+    endDate: coupon?.validUntil ? coupon.validUntil.split('T')[0] : '',
     isActive: coupon?.isActive !== false,
   });
   const [saving, setSaving] = useState(false);
@@ -387,12 +390,17 @@ function CouponModal({
     e.preventDefault();
     setSaving(true);
     await onSave({
-      ...formData,
+      code: formData.code,
+      description: formData.description,
+      discountType: formData.discountType,
+      discountValue: formData.discountValue,
       minOrderAmount: formData.minOrderAmount ? Number(formData.minOrderAmount) : null,
       maxDiscountAmount: formData.maxDiscountAmount ? Number(formData.maxDiscountAmount) : null,
       usageLimit: formData.usageLimit ? Number(formData.usageLimit) : null,
-      validFrom: formData.validFrom || null,
-      validUntil: formData.validUntil || null,
+      usagePerUser: formData.usagePerUser,
+      startDate: formData.startDate || null,
+      endDate: formData.endDate || null,
+      isActive: formData.isActive,
     });
     setSaving(false);
   };
@@ -502,8 +510,8 @@ function CouponModal({
               <label className="block text-sm font-medium text-gray-700 mb-1">На пользователя</label>
               <input
                 type="number"
-                value={formData.userUsageLimit}
-                onChange={(e) => setFormData(prev => ({ ...prev, userUsageLimit: Number(e.target.value) }))}
+                value={formData.usagePerUser}
+                onChange={(e) => setFormData(prev => ({ ...prev, usagePerUser: Number(e.target.value) }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 min="1"
               />
@@ -515,8 +523,8 @@ function CouponModal({
               <label className="block text-sm font-medium text-gray-700 mb-1">Действует с</label>
               <input
                 type="date"
-                value={formData.validFrom}
-                onChange={(e) => setFormData(prev => ({ ...prev, validFrom: e.target.value }))}
+                value={formData.startDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               />
             </div>
@@ -524,8 +532,8 @@ function CouponModal({
               <label className="block text-sm font-medium text-gray-700 mb-1">Действует до</label>
               <input
                 type="date"
-                value={formData.validUntil}
-                onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
+                value={formData.endDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               />
             </div>
