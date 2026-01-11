@@ -118,15 +118,47 @@ export default function CartPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Имитация отправки заказа
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: orderData.name,
+          customerPhone: orderData.phone,
+          customerEmail: orderData.email || null,
+          deliveryType: orderData.delivery,
+          paymentMethod: orderData.payment,
+          deliveryAddress: orderData.delivery === 'delivery' ? orderData.address : null,
+          customerComment: orderData.comment || null,
+          couponCode: appliedCoupon?.code || null,
+          items: items.map(item => ({
+            productId: item.productId,
+            urlId: item.urlId,
+            title: item.title,
+            image: item.image,
+            price: item.price,
+            quantity: item.quantity,
+            size: item.size,
+            unit: item.unit,
+          })),
+        }),
+      });
 
-    // TODO: Отправить заказ на сервер
-    console.log('Order:', { items, orderData, totalAmount });
+      const data = await response.json();
 
-    setIsSubmitting(false);
-    setOrderSuccess(true);
-    clearCart();
+      if (response.ok) {
+        setOrderSuccess(true);
+        clearCart();
+        setAppliedCoupon(null);
+      } else {
+        alert(data.error || 'Ошибка при оформлении заказа');
+      }
+    } catch (error) {
+      console.error('Order error:', error);
+      alert('Ошибка соединения. Попробуйте ещё раз.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Успешный заказ
@@ -276,7 +308,7 @@ export default function CartPage() {
 
                   {/* Количество и сумма - отдельная строка */}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       <button
                         onClick={() =>
                           updateQuantity(item.productId, item.size, item.quantity - 1)
@@ -288,7 +320,25 @@ export default function CartPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                         </svg>
                       </button>
-                      <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="9999"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val >= 1) {
+                            updateQuantity(item.productId, item.size, Math.min(val, 9999));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (isNaN(val) || val < 1) {
+                            updateQuantity(item.productId, item.size, 1);
+                          }
+                        }}
+                        className="w-14 sm:w-16 text-center font-semibold border border-gray-200 rounded-lg py-1 focus:ring-2 focus:ring-primary focus:border-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
                       <button
                         onClick={() =>
                           updateQuantity(item.productId, item.size, item.quantity + 1)
