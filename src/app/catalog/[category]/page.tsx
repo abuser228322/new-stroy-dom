@@ -10,7 +10,7 @@ import {
   LucideIcon, PaintBucket, CircleDot, Disc,
 } from 'lucide-react';
 import { getCategoryBySlug, getAllCategories } from '@/lib/db/queries';
-import { ItemListSchema } from '../../components/SchemaOrg';
+import { ItemListSchema, BreadcrumbSchema } from '../../components/SchemaOrg';
 
 interface CategoryPageProps {
   params: Promise<{
@@ -171,9 +171,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     url: `https://stroydom30.ru/catalog/${categorySlug}/${sub.slug}`,
   }));
 
+  // Хлебные крошки для Schema.org
+  const breadcrumbItems = [
+    { name: 'Главная', url: 'https://stroydom30.ru' },
+    { name: 'Каталог', url: 'https://stroydom30.ru/catalog' },
+    { name: category.name, url: `https://stroydom30.ru/catalog/${categorySlug}` },
+  ];
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* SEO Schema.org разметка */}
+      <BreadcrumbSchema items={breadcrumbItems} />
       {category.subcategories.length > 0 && (
         <ItemListSchema
           items={itemListItems}

@@ -8,7 +8,7 @@ import {
   getProducts,
 } from '@/lib/db/queries';
 import ProductCard from '../../../components/ProductCard';
-import { ItemListSchema } from '../../../components/SchemaOrg';
+import { ItemListSchema, BreadcrumbSchema } from '../../../components/SchemaOrg';
 
 interface SubcategoryPageProps {
   params: Promise<{
@@ -93,9 +93,18 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     price: product.price || undefined,
   }));
 
+  // Breadcrumb для SEO
+  const breadcrumbItems = [
+    { name: 'Главная', url: 'https://stroydom30.ru/' },
+    { name: 'Каталог', url: 'https://stroydom30.ru/catalog' },
+    { name: category.name, url: `https://stroydom30.ru/catalog/${categorySlug}` },
+    { name: subcategory.name, url: `https://stroydom30.ru/catalog/${categorySlug}/${subcategorySlug}` },
+  ];
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* SEO Schema.org разметка */}
+      <BreadcrumbSchema items={breadcrumbItems} />
       {products.length > 0 && (
         <ItemListSchema
           items={itemListItems}

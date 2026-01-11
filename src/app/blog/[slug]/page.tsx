@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { blogPosts, products, categories, subcategories } from '@/lib/db/schema';
 import { eq, inArray } from 'drizzle-orm';
 import { FaCalendar, FaArrowLeft, FaTag, FaShoppingCart } from 'react-icons/fa';
-import { ArticleSchema } from '../../components/SchemaOrg';
+import { ArticleSchema, BreadcrumbSchema } from '../../components/SchemaOrg';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -260,9 +260,17 @@ export default async function BlogPostPage({ params }: PageProps) {
   const tags = post.tags ? post.tags.split(',').map(t => t.trim()) : [];
   const relatedProducts = await getRelatedProducts(post.relatedProductIds);
 
+  // Breadcrumb для SEO
+  const breadcrumbItems = [
+    { name: 'Главная', url: 'https://stroydom30.ru/' },
+    { name: 'Блог', url: 'https://stroydom30.ru/blog' },
+    { name: post.title, url: `https://stroydom30.ru/blog/${slug}` },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* SEO Schema.org разметка */}
+      <BreadcrumbSchema items={breadcrumbItems} />
       <ArticleSchema
         title={post.title}
         description={post.excerpt || post.title}
