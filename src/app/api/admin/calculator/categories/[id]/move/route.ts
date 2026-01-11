@@ -1,13 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { calculatorCategories } from '@/lib/db/schema';
 import { eq, gt, lt, desc, asc } from 'drizzle-orm';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-utils';
 
 // POST - Переместить категорию вверх/вниз
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();

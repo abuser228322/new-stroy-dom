@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { blogPosts } from '@/lib/db/schema';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-utils';
 
 interface BlogPostData {
   slug: string;
@@ -627,7 +628,13 @@ const blogPostsData: BlogPostData[] = [
   }
 ];
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     // Удаляем старые статьи
     await db.delete(blogPosts);

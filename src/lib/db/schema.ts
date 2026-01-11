@@ -5,6 +5,28 @@ import { relations } from "drizzle-orm";
 
 export const userRoleEnum = pgEnum("user_role", ["SUPERADMIN", "ADMIN", "MODER", "USER"]);
 
+export const orderStatusEnum = pgEnum("order_status", [
+  "pending",      // Ожидает подтверждения
+  "confirmed",    // Подтверждён
+  "processing",   // В обработке
+  "ready",        // Готов к выдаче/доставке
+  "delivering",   // В доставке
+  "completed",    // Завершён
+  "cancelled",    // Отменён
+]);
+
+export const deliveryTypeEnum = pgEnum("delivery_type", [
+  "pickup_rybinskaya",  // Самовывоз Рыбинская 25Н
+  "pickup_svobody",     // Самовывоз пл. Свободы 14К
+  "delivery",           // Доставка
+]);
+
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "cash",       // Наличными при получении
+  "card",       // Картой при получении
+  "online",     // Онлайн оплата
+]);
+
 // ==================== КАЛЬКУЛЯТОР МАТЕРИАЛОВ ====================
 
 // Категории калькулятора (штукатурка, шпатлёвка, плиточный клей и т.д.)
@@ -425,3 +447,109 @@ export const blogPosts = pgTable("blog_posts", {
 
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type NewBlogPost = typeof blogPosts.$inferInsert;
+
+// ==================== ЗАКАЗЫ ====================
+
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  
+  // Номер заказа (уникальный, генерируется)
+  orderNumber: varchar("order_number", { length: 50 }).notNull().unique(),
+  
+  // Пользователь (может быть null для гостевых заказов)
+  userId: integer("user_id").references(() => users.id),
+  
+  // Контактные данные заказчика
+  customerName: varchar("customer_name", { length: 255 }).notNull(),
+  customerPhone: varchar("customer_phone", { length: 20 }).notNull(),
+  customerEmail: varchar("customer_email", { length: 255 }),
+  
+  // Статус и способы
+  status: orderStatusEnum("status").default("pending").notNull(),
+  deliveryType: deliveryTypeEnum("delivery_type").notNull(),
+  paymentMethod: paymentMethodEnum("payment_method").notNull(),
+  
+  // Адрес доставки (если доставка)
+  deliveryAddress: text("delivery_address"),
+  deliveryComment: text("delivery_comment"),
+  
+  // Суммы
+  subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(), // Сумма товаров
+  deliveryPrice: numeric("delivery_price", { precision: 10, scale: 2 }).default("0"), // Стоимость доставки
+  discount: numeric("discount", { precision: 10, scale: 2 }).default("0"), // Скидка
+  total: numeric("total", { precision: 10, scale: 2 }).notNull(), // Итого
+  
+  // Купон
+  couponId: integer("coupon_id").references(() => coupons.id),
+  couponCode: varchar("coupon_code", { length: 50 }),
+  
+  // Комментарии
+  customerComment: text("customer_comment"), // Комментарий от покупателя
+  adminComment: text("admin_comment"), // Внутренний комментарий админа
+  
+  // Даты
+  confirmedAt: timestamp("confirmed_at"),
+  completedAt: timestamp("completed_at"),
+  cancelledAt: timestamp("cancelled_at"),
+  cancelReason: text("cancel_reason"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  
+  // Товар (может быть null если товар удалён)
+  productId: integer("product_id").references(() => products.id),
+  
+  // Данные товара на момент заказа (сохраняем для истории)
+  urlId: varchar("url_id", { length: 255 }).notNull(),
+  title: varchar("title", { length: 500 }).notNull(),
+  image: text("image"),
+  
+  // Количество и цены
+  quantity: integer("quantity").notNull(),
+  price: numeric("price", { precision: 10, scale: 2 }).notNull(), // Цена за единицу
+  size: varchar("size", { length: 100 }), // Выбранный размер/вариант
+  unit: varchar("unit", { length: 50 }), // Единица измерения (шт, м², кг)
+  
+  // Итого по позиции
+  total: numeric("total", { precision: 10, scale: 2 }).notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ==================== ORDER RELATIONS ====================
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  coupon: one(coupons, {
+    fields: [orders.couponId],
+    references: [coupons.id],
+  }),
+  items: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
+
+// ==================== ORDER TYPES ====================
+
+export type Order = typeof orders.$inferSelect;
+export type NewOrder = typeof orders.$inferInsert;
+
+export type OrderItem = typeof orderItems.$inferSelect;
+export type NewOrderItem = typeof orderItems.$inferInsert;

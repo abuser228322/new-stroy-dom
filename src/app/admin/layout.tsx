@@ -1,16 +1,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { validateSession, isAdmin } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Админ-панель | Строй Дом",
   robots: "noindex, nofollow",
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Проверяем авторизацию
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+
+  if (!token) {
+    redirect("/login?redirect=/admin&error=auth_required");
+  }
+
+  const user = await validateSession(token);
+
+  if (!user) {
+    redirect("/login?redirect=/admin&error=session_expired");
+  }
+
+  if (!isAdmin(user)) {
+    redirect("/?error=access_denied");
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Навигация */}
@@ -61,6 +82,12 @@ export default function AdminLayout({
                   Блог
                 </Link>
                 <Link
+                  href="/admin/orders"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Заказы
+                </Link>
+                <Link
                   href="/admin/calculator"
                   className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
@@ -68,7 +95,14 @@ export default function AdminLayout({
                 </Link>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="hidden sm:inline">👤</span>
+                <span className="font-medium">{user.username}</span>
+                <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">
+                  {user.role}
+                </span>
+              </div>
               <Link
                 href="/"
                 className="text-sm text-gray-500 hover:text-gray-700"

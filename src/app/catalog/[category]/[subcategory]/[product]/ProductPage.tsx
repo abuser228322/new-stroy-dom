@@ -60,6 +60,8 @@ export default function ProductPage({ product, category, subcategory, relatedPro
       unit: product.unit,
       mainCategory: product.mainCategory,
       subCategory: product.subCategory,
+      categorySlug: category.slug,
+      subcategorySlug: subcategory.slug,
     });
 
     setIsAdded(true);

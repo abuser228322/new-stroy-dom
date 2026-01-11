@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { products, categories, subcategories } from "@/lib/db/schema";
 import { eq, asc, desc, like, or, and, sql } from "drizzle-orm";
+import { requireAdmin, authErrorResponse } from "@/lib/auth-utils";
 
 // GET /api/admin/products - получить товары с фильтрами и пагинацией
 export async function GET(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     
@@ -88,6 +95,12 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/products - создать товар
 export async function POST(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const body = await request.json();
     
@@ -184,6 +197,12 @@ export async function POST(request: NextRequest) {
 
 // PUT /api/admin/products - обновить товар
 export async function PUT(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
@@ -233,6 +252,12 @@ export async function PUT(request: NextRequest) {
 
 // DELETE /api/admin/products - удалить товар
 export async function DELETE(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

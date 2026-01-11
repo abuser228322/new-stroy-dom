@@ -66,6 +66,8 @@ export interface CartItem {
   unit?: string;
   mainCategory: string;
   subCategory: string;
+  categorySlug?: string;           // Slug категории для URL
+  subcategorySlug?: string;        // Slug подкатегории для URL
 }
 
 export interface Cart {

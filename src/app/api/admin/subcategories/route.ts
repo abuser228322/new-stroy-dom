@@ -2,10 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { subcategories, categories } from "@/lib/db/schema";
 import { eq, asc, and } from "drizzle-orm";
+import { requireAdmin, authErrorResponse } from "@/lib/auth-utils";
 
 // GET /api/admin/subcategories - получить подкатегории
 // Параметры: categoryId (опционально) - фильтр по категории
 export async function GET(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId");
@@ -42,6 +49,12 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/subcategories - создать подкатегорию
 export async function POST(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const body = await request.json();
     
@@ -88,6 +101,12 @@ export async function POST(request: NextRequest) {
 
 // PUT /api/admin/subcategories - обновить подкатегорию
 export async function PUT(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
@@ -126,6 +145,12 @@ export async function PUT(request: NextRequest) {
 
 // DELETE /api/admin/subcategories - удалить подкатегорию
 export async function DELETE(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

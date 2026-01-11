@@ -1,10 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { calculatorCategories, calculatorProducts, calculatorInputs } from '@/lib/db/schema';
 import { asc, eq, sql } from 'drizzle-orm';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-utils';
 
 // GET - Получить все категории
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const categories = await db
       .select({
@@ -53,7 +60,13 @@ export async function GET() {
 }
 
 // POST - Создать категорию
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const body = await request.json();
     

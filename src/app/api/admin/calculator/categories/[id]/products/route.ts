@@ -1,13 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { calculatorProducts, products } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-utils';
 
 // GET - Получить все продукты категории
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { id } = await params;
     
@@ -46,9 +52,14 @@ export async function GET(
 
 // POST - Создать продукт
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();

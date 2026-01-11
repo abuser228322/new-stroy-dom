@@ -1,10 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { heroSlides } from '@/lib/db/schema';
 import { asc, eq, desc } from 'drizzle-orm';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-utils';
 
 // GET - Получить все слайды (включая неактивные)
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const slides = await db
       .select()
@@ -22,7 +29,13 @@ export async function GET() {
 }
 
 // POST - Создать новый слайд
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const body = await request.json();
     const { title, description, buttonText, buttonLink, emoji, sortOrder, isActive } = body;

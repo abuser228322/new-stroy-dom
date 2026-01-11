@@ -1,13 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { heroSlides } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { requireAdmin, authErrorResponse } from '@/lib/auth-utils';
 
 // GET - Получить слайд по ID
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { id } = await params;
     const slideId = parseInt(id);
@@ -36,9 +43,15 @@ export async function GET(
 
 // PUT - Обновить слайд
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { id } = await params;
     const slideId = parseInt(id);
@@ -79,9 +92,15 @@ export async function PUT(
 
 // DELETE - Удалить слайд
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Проверяем права администратора
+  const authResult = await requireAdmin(request);
+  if (!authResult.success) {
+    return authErrorResponse(authResult);
+  }
+
   try {
     const { id } = await params;
     const slideId = parseInt(id);

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
-import { getCategorySlug, getSubcategorySlug } from '../mock/products';
 
 const CONTACT_INFO = {
   phone: '8-937-133-33-66',
@@ -220,9 +219,12 @@ export default function CartPage() {
           {/* Список товаров */}
           <div className="grow space-y-4">
             {items.map((item) => {
-              const categorySlug = getCategorySlug(item.mainCategory);
-              const subcategorySlug = getSubcategorySlug(item.subCategory);
-              const productLink = `/catalog/${categorySlug}/${subcategorySlug}/${item.urlId}`;
+              // Используем categorySlug/subcategorySlug из item (сохранены при добавлении в корзину)
+              const categorySlug = item.categorySlug || 'catalog';
+              const subcategorySlug = item.subcategorySlug || '';
+              const productLink = subcategorySlug 
+                ? `/catalog/${categorySlug}/${subcategorySlug}/${item.urlId}`
+                : `/catalog/${categorySlug}/${item.urlId}`;
               
               return (
                 <div

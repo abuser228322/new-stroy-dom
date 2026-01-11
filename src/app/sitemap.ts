@@ -1,8 +1,6 @@
 import { MetadataRoute } from 'next';
-import { menuCategories } from './mock/menuCategories';
-import products, { getCategorySlug, getSubcategorySlug } from './mock/products';
 import { db } from '@/lib/db';
-import { blogPosts } from '@/lib/db/schema';
+import { blogPosts, categories, subcategories, products } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 const BASE_URL = 'https://stroydom30.ru';
@@ -31,36 +29,62 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: page.priority,
   }));
 
-  // 2. Страницы категорий
-  const categoryUrls: MetadataRoute.Sitemap = menuCategories.map(category => ({
-    url: `${BASE_URL}/catalog/${category.slug}`,
-    lastModified: currentDate,
-    changeFrequency: 'daily' as const,
-    priority: 0.8,
-  }));
+  // 2. Страницы категорий (из БД)
+  let categoryUrls: MetadataRoute.Sitemap = [];
+  let subcategoryUrls: MetadataRoute.Sitemap = [];
+  let productUrls: MetadataRoute.Sitemap = [];
+  
+  try {
+    const allCategories = await db
+      .select({ slug: categories.slug })
+      .from(categories)
+      .where(eq(categories.isActive, true));
+    
+    categoryUrls = allCategories.map(category => ({
+      url: `${BASE_URL}/catalog/${category.slug}`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }));
 
-  // 3. Страницы подкатегорий
-  const subcategoryUrls: MetadataRoute.Sitemap = menuCategories.flatMap(category =>
-    category.subcategories.map(sub => ({
-      url: `${BASE_URL}/catalog/${category.slug}/${sub.slug}`,
+    // 3. Страницы подкатегорий (из БД)
+    const allSubcategories = await db
+      .select({ 
+        slug: subcategories.slug,
+        categorySlug: categories.slug 
+      })
+      .from(subcategories)
+      .innerJoin(categories, eq(subcategories.categoryId, categories.id))
+      .where(eq(subcategories.isActive, true));
+    
+    subcategoryUrls = allSubcategories.map(sub => ({
+      url: `${BASE_URL}/catalog/${sub.categorySlug}/${sub.slug}`,
       lastModified: currentDate,
       changeFrequency: 'daily' as const,
       priority: 0.7,
-    }))
-  );
+    }));
 
-  // 4. Страницы товаров
-  const productUrls: MetadataRoute.Sitemap = products.map(product => {
-    const categorySlug = getCategorySlug(product.mainCategory);
-    const subcategorySlug = getSubcategorySlug(product.subCategory);
+    // 4. Страницы товаров (из БД)
+    const allProducts = await db
+      .select({ 
+        urlId: products.urlId,
+        categorySlug: categories.slug,
+        subcategorySlug: subcategories.slug
+      })
+      .from(products)
+      .innerJoin(categories, eq(products.categoryId, categories.id))
+      .innerJoin(subcategories, eq(products.subcategoryId, subcategories.id))
+      .where(eq(products.isActive, true));
     
-    return {
-      url: `${BASE_URL}/catalog/${categorySlug}/${subcategorySlug}/${product.urlId}`,
+    productUrls = allProducts.map(product => ({
+      url: `${BASE_URL}/catalog/${product.categorySlug}/${product.subcategorySlug}/${product.urlId}`,
       lastModified: currentDate,
       changeFrequency: 'weekly' as const,
       priority: 0.6,
-    };
-  });
+    }));
+  } catch (error) {
+    console.error('Error fetching categories/products for sitemap:', error);
+  }
 
   // 5. Страницы блога
   let blogUrls: MetadataRoute.Sitemap = [];

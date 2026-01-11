@@ -3,6 +3,9 @@ import { users, sessions, type User, type NewUser } from './db/schema';
 import { eq, and, gt } from 'drizzle-orm';
 import crypto from 'crypto';
 
+// Реэкспорт типов для использования в других модулях
+export type { User, NewUser };
+
 // ==================== ХЕШИРОВАНИЕ ПАРОЛЕЙ ====================
 
 export async function hashPassword(password: string): Promise<string> {

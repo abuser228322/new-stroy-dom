@@ -60,6 +60,8 @@ export default function ProductCard({
       unit: product.unit,
       mainCategory: product.mainCategory,
       subCategory: product.subCategory,
+      categorySlug: catSlug,
+      subcategorySlug: subSlug,
     };
 
     addItem(cartItem);
