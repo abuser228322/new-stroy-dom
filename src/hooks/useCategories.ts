@@ -1,29 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { Category, Subcategory } from '@/types';
 
-export interface Category {
-  id: number;
-  slug: string;
-  name: string;
-  shortName: string | null;
-  description: string | null;
-  image: string | null;
-  icon: string | null;
-  sortOrder: number | null;
-  isActive: boolean | null;
-  subcategories: Subcategory[];
-}
-
-export interface Subcategory {
-  id: number;
-  slug: string;
-  name: string;
-  description: string | null;
-  image: string | null;
-  sortOrder: number | null;
-  isActive: boolean | null;
-}
+// Реэкспорт типов для обратной совместимости
+export type { Category, Subcategory };
 
 // Кеш для категорий
 let categoriesCache: Category[] | null = null;

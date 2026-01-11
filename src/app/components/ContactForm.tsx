@@ -2,11 +2,11 @@
 
 import { useState, ChangeEvent, FormEvent } from 'react';
 import { FaPaperPlane } from 'react-icons/fa';
-import type { CreateContactRequestData } from '../types/types';
+import type { ContactFormData } from '@/types';
 
 
 export default function ContactForm() {
-  const [formData, setFormData] = useState<CreateContactRequestData>({
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     phone: '',
     message: '',
@@ -16,7 +16,7 @@ export default function ContactForm() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: CreateContactRequestData) => ({ ...prev, [name]: value }));
+    setFormData((prev: ContactFormData) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: FormEvent) => {

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
-import type { Product, CartItem } from '../types/types';
+import type { Product, CartItem } from '@/types';
 
 interface ProductCardProps {
   product: Product;

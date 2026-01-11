@@ -1,26 +1,19 @@
-import type { Category } from '@/hooks/useCategories';
+/**
+ * Типы для Header компонентов
+ * Реэкспорт из центрального модуля типов
+ */
+export type { 
+  Category, 
+  NavLink, 
+  MobileMenuProps, 
+  StoreOpenDotProps,
+  MenuCategory 
+} from '@/types';
 
-export type { Category };
-
-export interface NavLink {
-  href: string;
-  label: string;
-}
-
-export interface MobileMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
-  categories: Category[];
-}
-
-export interface StoreOpenDotProps {
-  isOpen: boolean;
-}
-
-// Навигационные ссылки
-export const NAV_LINKS: NavLink[] = [
+// Константы навигации
+export const NAV_LINKS = [
   { href: '/calculator', label: 'Калькулятор' },
   { href: '/blog', label: 'Блог' },
   { href: '/sales', label: 'Акции' },
   { href: '/contacts', label: 'Контакты' },
-];
+] as const;

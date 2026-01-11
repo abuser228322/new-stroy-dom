@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import type { CartItem } from '../types/types';
+import type { CartItem } from '@/types';
 
 // Тип для корзины
 interface Cart {
