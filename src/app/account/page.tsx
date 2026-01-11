@@ -14,14 +14,25 @@ interface OrderItem {
   total: string;
 }
 
+interface OrderPart {
+  id: number;
+  storeId: number;
+  deliveryType: string;
+  store?: {
+    name: string;
+    shortName: string;
+  };
+  items: OrderItem[];
+}
+
 interface Order {
   id: number;
   orderNumber: string;
   status: string;
-  deliveryType: string;
   total: string;
   createdAt: string;
   items: OrderItem[];
+  parts?: OrderPart[];
 }
 
 const STATUS_LABELS: Record<string, { text: string; color: string }> = {
@@ -667,7 +678,16 @@ function AccountContent() {
                           </div>
                           <div className="flex items-center justify-between pt-2 border-t border-slate-200">
                             <span className="text-sm text-slate-500">
-                              {order.deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз'}
+                              {order.parts && order.parts.length > 0 ? (
+                                order.parts.map((part, idx) => (
+                                  <span key={part.id}>
+                                    {part.store?.shortName || 'Магазин'}: {part.deliveryType === 'delivery' ? '🚚' : '🏪'}
+                                    {idx < order.parts!.length - 1 ? ' · ' : ''}
+                                  </span>
+                                ))
+                              ) : (
+                                'Заказ'
+                              )}
                             </span>
                             <span className="font-semibold text-slate-800">
                               {new Intl.NumberFormat('ru-RU').format(Number(order.total))} ₽
